@@ -1,2 +1,2 @@
-# stemgraphics
-stemgraphics python package
+# stemgraphic
+stemgraphic python package
