@@ -1,0 +1,9 @@
+cloudpickle
+coverage
+dask
+docopt
+matplotlib
+pandas
+scipy
+seaborn
+toolz

@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""Stem.
+
+Stem and leaf plot from a csv or excel spreadsheet using best defaults.
+
+Usage:
+    stem <input> [-c <column>] [-o <file>] [-d]
+    stem -h | --help
+    stem --version
+
+Options:
+    -h --help    Show this screen.
+    -c <column>  column index
+    -d           describe the data
+    -o <file>    output file (.txt, .png)
+    --version
+
+"""
+from docopt import docopt
+import pandas as pd
+from stemgraphic import stem_text, stem_graphic
+
+
+if __name__ == "__main__":
+    arguments = docopt(__doc__, version='Stem_graphic 0.3.3')
+    filename = arguments['<input>']
+    if filename[-4:] in ('xlsx', '.xls'):
+        df = pd.read_excel(filename)
+        if arguments['-d']:
+            print(df.describe())
+    else:
+        df = pd.read_csv(filename)
+        if arguments['-d']:
+            print(df.describe())
+    x = df.ix[:, int(arguments['-c'])] if arguments['-c'] else df
+    if arguments['-o']:
+        fig, ax = stem_graphic(x)
+        fig.savefig(arguments['-o'])
+    else:
+        stem_text(x, outliers=True)
