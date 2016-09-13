@@ -9,9 +9,7 @@ providing a solution to these limitations.
 
 A typical stem_graphic output:
 
-.. image:: https://.../stem_plot.png
-    :target: https://.../stem_plot.png
-    :alt: stem_graphic example
+![stem_graphic example](https://github.com/fdion/stemgraphic/raw/master/png/test_rosetta.png)
 
 For an in depth look at 
 

@@ -1,6 +1,9 @@
 stemgraphic
 ===========
 
+Overview
+========
+
 John Tukey’s stem-and-leaf plot first appeared in 1970. Although very
 useful back then, it cannot handle more than 300 data points and is
 completely text-based. Stemgraphic is a very easy to use python package
@@ -8,8 +11,10 @@ providing a solution to these limitations.
 
 A typical stem\_graphic output:
 
-.. image:: https://.../stem\_plot.png :target:
-https://.../stem\_plot.png :alt: stem\_graphic example
+.. figure:: https://github.com/fdion/stemgraphic/raw/master/png/test_rosetta.png
+   :alt: stem\_graphic example
+
+   stem\_graphic example
 
 For an in depth look at
 
