@@ -38,7 +38,7 @@ type_to_alias = {
 
 
 if __name__ == "__main__":
-    arguments = docopt(__doc__, version='Stemgraphic 0.3.4')
+    arguments = docopt(__doc__, version='Stemgraphic 0.3.5')
     filename = arguments['<input>']
     try:
         statinfo = os.stat(filename)  # file could be on hdfs or s3
