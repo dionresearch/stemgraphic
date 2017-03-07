@@ -2,14 +2,14 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
 
-from .helpers import key_calc, legend, min_max_count
+from .helpers import key_calc, legend, min_max_count, dd
 from .text import stem_data
 
 
 def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color='b', bar_outline=None,
                  break_on=None, column=None, compact=False, delimiter_color='r', display=900, flip_axes=False,
-                 font_kw={}, leaf_color='k', leaf_order=1, legend_pos='best', median_color='magenta', mirror=False,
-                 outliers=None, outliers_color='r', persistence=None, primary_kw={}, random_state=None, scale=None,
+                 font_kw=None, leaf_color='k', leaf_order=1, legend_pos='best', median_color='magenta', mirror=False,
+                 outliers=None, outliers_color='r', persistence=None, primary_kw=None, random_state=None, scale=None,
                  secondary_kw=None, secondary_plot=None, trim=False, trim_blank=True, underline_color=None,
                  unit='', zoom=None):
     """ A graphical stem and leaf plot.
@@ -37,7 +37,6 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
     :param mirror: mirror the plot in the axis of the delimiters
     :param outliers: display outliers - these are from the full data set, not the sample. Defaults to Auto
     :param outliers_color: background color for the outlier boxes
-    :param percent_display: maximum percentage of data points to display
     :param persistence: filename. save sampled data to disk, either as pickle (.pkl) or csv (any other extension)
     :param primary_kw: stem-and-leaf plot additional arguments
     :param random_state: initial random seed for the sampling process, for reproducible research
@@ -51,7 +50,28 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
     :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
     :return: matplotlib figure and axes instance
     """
+    try:
+        cols = len(df.columns)
+    except AttributeError:
+        # wasn't a multi column data frame, might be a list
+        cols = 1
+    if cols > 1:
+        if column is None:
+            # We have to figure out the first numerical column on our own
+            start_at = 1 if df.columns[0] == 'id' else 0
+            for i in range(start_at, len(df.columns)):
+                if df.dtypes[i] in ('int64', 'float64'):
+                    column = i
+                    break
+        if dd is not False:
+            df = df[df.columns.values[column]]
+        else:
+            df = df.ix[:, column]
 
+    if font_kw is None:
+        font_kw = {}
+    if primary_kw is None:
+        primary_kw = {}
     base_fontsize = font_kw.get('fontsize', 12)
     aggr_fontsize = font_kw.get('aggr_fontsize', base_fontsize - 2)
     aggr_fontweight = font_kw.get('aggr_fontweight', 'normal')
@@ -75,6 +95,12 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
         leaf_color = 'k'
         leaf_alpha = 0
 
+    try:
+        if type(df) in (dd.Dataframe, dd.Series) and len(df.columns) > 1:
+            print("Using dask, column has to be specified")
+            exit(-1)
+    except AttributeError:
+        pass
     min_val, max_val, total_rows = min_max_count(df)
 
     scale_factor, pair, rows = stem_data(df, break_on=break_on, column=column, compact=compact,
@@ -179,7 +205,7 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
                         else {},
                         fontweight=aggr_fontweight, va='center', ha='right' if mirror else 'left')
             # STEM
-            ax.text(2.4, cnt + 0.5, stem, fontweight=stem_fontweight,color=stem_fontcolor,
+            ax.text(2.4, cnt + 0.5, stem, fontweight=stem_fontweight, color=stem_fontcolor,
                     bbox={'facecolor': stem_facecolor, 'alpha': alpha, 'pad': pad} if stem_facecolor is not None
                     else {},
                     fontsize=stem_fontsize, va='center', ha='left' if mirror else 'right')

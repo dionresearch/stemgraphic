@@ -1,3 +1,4 @@
+import pandas as pd
 try:
     import dask.dataframe as dd
 except ImportError:
@@ -19,10 +20,11 @@ def legend(ax, x, y, asc, flip_axes, mirror, stem, leaf, scale, delimiter_color,
            display=10, pos='best', unit=''):
     """
 
+    :param display:
+    :param cur_font:
     :param ax:
     :param x:
     :param y:
-    :param font:
     :param pos:
     :param asc:
     :param flip_axes:
@@ -72,7 +74,7 @@ def legend(ax, x, y, asc, flip_axes, mirror, stem, leaf, scale, delimiter_color,
         cur_font.set_style('italic')
         ax.text(x - start_at + 0.3, y + 1, leaf, bbox={'facecolor': 'blue', 'alpha': 0.2, 'pad': 2},
                 va='center', ha=ha, fontproperties=cur_font)
-        ax.text(x - start_at + (len(stem) + offset + len(leaf) +0.6)/1.7 + secondary,
+        ax.text(x - start_at + (len(stem) + offset + len(leaf) + 0.6)/1.7 + secondary,
                 y + 1, '.'+leaf, va='center', ha=ha, fontproperties=cur_font)
 
         if flip_axes:
@@ -85,20 +87,25 @@ def legend(ax, x, y, asc, flip_axes, mirror, stem, leaf, scale, delimiter_color,
                 ax.vlines(x - start_at - 1.1, y + 0.5, y + 1.5, color=delimiter_color, alpha=0.7)
 
 
-def min_max_count(x):
+def min_max_count(x, column=0):
     """Handles min, max and count. This works on numpy, lists, pandas and dask dataframes.
 
-    :param x: list, numpy array, time series, pandas or dask dataframe
+    :param column:
+    :param x: list, numpy array, series, pandas or dask dataframe
     :return: min, max and count
     """
     if dd and type(x) in (dd.core.DataFrame, dd.core.Series):
         omin, omax, count = dd.compute(x.min(), x.max(), x.count())
+    elif type(x) in (pd.DataFrame, pd.Series):
+        omin = x.min()
+        omax = x.max()
+        count = len(x)
     else:
         omin = min(x)
         omax = max(x)
         count = len(x)
 
-    return omin, omax, count
+    return omin, omax, int(count)
 
 
 def percentile(data, alpha):

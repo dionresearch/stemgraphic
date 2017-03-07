@@ -12,7 +12,7 @@ See research paper () for more technical details.
 A command line utility was installed along with the module, allowing to process excel or csv
 files. See: stem -h
 """
-
 from .aliases import stem_hist, stem_kde, stem_line
 from .graphic import stem_graphic
-from .text import stem_data, stem_text
+from .text import stem_data, stem_dot, stem_text
+from .helpers import dd

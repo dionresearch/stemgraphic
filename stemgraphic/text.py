@@ -1,7 +1,8 @@
 import math
+import numpy as np
 from operator import itemgetter
 
-from .helpers import key_calc, min_max_count
+from .helpers import *
 
 
 def stem_data(x, column=None, display=300, leaf_order=1, break_on=None, scale=None, compact=False, omin=None,
@@ -19,7 +20,7 @@ def stem_data(x, column=None, display=300, leaf_order=1, break_on=None, scale=No
     :param outliers:
     :param omin:
     :param omax:
-    :param pkl_file: persist sampled dataframe
+    :param persistence: persist sampled dataframe
     :param random_state:
     :param total_rows:
     :param trim:
@@ -33,33 +34,36 @@ def stem_data(x, column=None, display=300, leaf_order=1, break_on=None, scale=No
         # wasn't a multi column data frame, might be a list
         cols = 1
 
-
     if cols > 1:
         if column is None:
-            # We have to figure out the first numerical column on out own
+            # We have to figure out the first numerical column on our own
             start_at = 1 if x.columns[0] == 'id' else 0
             for i in range(start_at, len(x.columns)):
                 if x.dtypes[i] in ('int64', 'float64'):
                     column = i
                     break
-        x = x.ix[:, column]
+        if dd != False:
+            x = x[x.columns.values[column]]
+        else:
+            x = x.ix[:, column]
 
     # Sampling or not we need the absolute min/max
     if omin is None or omax is None or total_rows is None:
-        omin, omax, total_rows = min_max_count(x)  # very expensive if on disk, don't do it twice
+        omin, omax, total_rows = min_max_count(x, column)  # very expensive if on disk, don't do it twice
 
     n = total_rows
+    print(cols, column, n)
     if n == 0:
         return None
     elif n > display:
         try:
-            x = x.sample(n=display, random_state=random_state)
+            x = x.sample(n=display, random_state=random_state).values
         except TypeError:
             # We are here due to dask not supporting n=. We'll use less precise frac instead
             frac = display / n
-            x = x.sample(frac=frac, random_state=random_state).compute()
+            x = x.sample(frac=frac, random_state=random_state).compute().values
         if persistence is not None:
-                if persistence[-4:]=='.pkl':
+                if persistence[-4:] == '.pkl':
                     x.to_pickle(persistence)
                 else:
                     x.to_csv(persistence)  # TODO: add feather, hdf5 etc
@@ -104,12 +108,12 @@ def stem_data(x, column=None, display=300, leaf_order=1, break_on=None, scale=No
             break_on = None
         elif zoom == -1:
             break_on = 5
-            scale_factor /=10
+            scale_factor /= 10
         elif zoom == 1 and break_on == 5:
-            scale_factor *=10
+            scale_factor *= 10
         elif zoom == 1:
             break_on = 5
-            scale_factor *=10
+            scale_factor *= 10
 
     if break_on is None:
         break_on = 10
@@ -117,10 +121,11 @@ def stem_data(x, column=None, display=300, leaf_order=1, break_on=None, scale=No
     truncate_factor = scale_factor / pow(10, leaf_order)
 
     # Now that we have a scale, we are going to round to it, trim outliers and split stem and leaf
-    rounded_data = [round(item / truncate_factor) * truncate_factor for item in x if lowest <= item <= highest]
+    rounded_data = [np.round(item / truncate_factor) * truncate_factor for item in x if lowest <= item <= highest]
     data = [math.modf(val / scale_factor) for val in rounded_data]
     sorted_data = sorted(data, key=itemgetter(1, 0))
     current_stem = None
+    current_leaf = None
     previous_mod = 0
     row = ''
     sign_transition = False
@@ -176,9 +181,8 @@ def stem_data(x, column=None, display=300, leaf_order=1, break_on=None, scale=No
     return scale_factor, key_label, rows
 
 
-def stem_text(df, asc=True, break_on=None, column=None, compact=False, display=300,
-              flip_axes=False, legend_pos='best', outliers=True, persistence=None,
-              random_state=None, scale=None, trim=False, unit='', zoom=None):
+def stem_dot(df, asc=True, break_on=None, column=None, compact=False, display=300,
+             legend_pos='best', outliers=True, random_state=None, scale=None, trim=False, unit='', zoom=None):
     """
 
     :param df: list, numpy array, time series, pandas or dask dataframe
@@ -188,11 +192,8 @@ def stem_text(df, asc=True, break_on=None, column=None, compact=False, display=3
                    else the first numerical is selected
     :param compact:
     :param display:
-    :param flip_axes:
     :param legend_pos:
-    :param mirror:
     :param outliers:
-    :param persistence:
     :param random_state:
     :param scale:
     :param trim:
@@ -208,7 +209,49 @@ def stem_text(df, asc=True, break_on=None, column=None, compact=False, display=3
         print('Key: \n{} => {}.{}x{} = {} {}'.format(pair, st, lf, scale, key_calc(st, lf, scale), unit))
 
     ordered_rows = rows if asc else rows[::-1]
-    for row in rows:
+    for row in ordered_rows:
+        try:
+            st, lf = row.split('|')
+            print("{}|{}".format(st, 'O' * len(lf)))
+        except ValueError:
+            # no pipe in row, print as is
+            print(row)
+    if legend_pos is not None and legend_pos != 'top':
+        st, lf = pair.split('|')
+        print('Scale: \n{} => {}.{}x{} = {} {}'.format(pair, st, lf, scale, key_calc(st, lf, scale), unit))
+
+
+def stem_text(df, asc=True, break_on=None, column=None, compact=False, display=300,
+              legend_pos='best', outliers=True, persistence=None,
+              random_state=None, scale=None, trim=False, unit='', zoom=None):
+    """
+
+    :param df: list, numpy array, time series, pandas or dask dataframe
+    :param asc:
+    :param break_on:
+    :param column: specify which column (string or number) of the dataframe to use,
+                   else the first numerical is selected
+    :param compact:
+    :param display:
+    :param legend_pos:
+    :param outliers:
+    :param persistence:
+    :param random_state:
+    :param scale:
+    :param trim:
+    :param unit:
+    :param zoom:
+    """
+    x = df if column is None else df[column]
+    scale, pair, rows = stem_data(x,  break_on=break_on, column=column, compact=compact,
+                                  display=display, outliers=outliers, persistence=persistence,
+                                  random_state=random_state, scale=scale, trim=trim, zoom=zoom)
+    if legend_pos == 'top':
+        st, lf = pair.split('|')
+        print('Key: \n{} => {}.{}x{} = {} {}'.format(pair, st, lf, scale, key_calc(st, lf, scale), unit))
+
+    ordered_rows = rows if asc else rows[::-1]
+    for row in ordered_rows:
         print(row)
     if legend_pos is not None and legend_pos != 'top':
         st, lf = pair.split('|')
