@@ -63,7 +63,7 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
                 if df.dtypes[i] in ('int64', 'float64'):
                     column = i
                     break
-        if dd is not False:
+        if dd:
             df = df[df.columns.values[column]]
         else:
             df = df.ix[:, column]
@@ -95,12 +95,6 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
         leaf_color = 'k'
         leaf_alpha = 0
 
-    try:
-        if type(df) in (dd.Dataframe, dd.Series) and len(df.columns) > 1:
-            print("Using dask, column has to be specified")
-            exit(-1)
-    except AttributeError:
-        pass
     min_val, max_val, total_rows = min_max_count(df)
 
     scale_factor, pair, rows = stem_data(df, break_on=break_on, column=column, compact=compact,

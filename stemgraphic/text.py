@@ -42,7 +42,7 @@ def stem_data(x, column=None, display=300, leaf_order=1, break_on=None, scale=No
                 if x.dtypes[i] in ('int64', 'float64'):
                     column = i
                     break
-        if dd != False:
+        if dd:
             x = x[x.columns.values[column]]
         else:
             x = x.ix[:, column]
@@ -52,7 +52,6 @@ def stem_data(x, column=None, display=300, leaf_order=1, break_on=None, scale=No
         omin, omax, total_rows = min_max_count(x, column)  # very expensive if on disk, don't do it twice
 
     n = total_rows
-    print(cols, column, n)
     if n == 0:
         return None
     elif n > display:
