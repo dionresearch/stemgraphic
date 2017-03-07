@@ -1,6 +1,7 @@
 cloudpickle
 coverage
 dask
+distributed
 docopt
 matplotlib
 pandas

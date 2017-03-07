@@ -1,8 +1,9 @@
 from setuptools import setup
-
+with open('VERSION', 'r') as f:
+    VERSION = f.read().rstrip('\n').replace("'", '')
 
 setup(name='stemgraphic',
-      version='0.3.3',
+      version=VERSION,
       install_requires=[
           "docopt",
           "matplotlib",

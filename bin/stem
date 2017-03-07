@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Stem.
 
-Stem and leaf plot from a csv or excel spreadsheet using best defaults.
+Stem and leaf plot from a csv or excel spreadsheet using best defaults. Can do text (text and dot) or graphic (kde,
+graphic, hist, line).
 
 Usage:
-    stem <input> [-c <column>] [-o <file>] [-d]
+    stem <input> [-c <column>] [-d] [-f] [-o <file>] [-p <percent>] [-s <server>] [-t <type>]
     stem -h | --help
     stem --version
 
@@ -12,29 +13,71 @@ Options:
     -h --help    Show this screen.
     -c <column>  column index
     -d           describe the data
+    -f           force dask
     -o <file>    output file (.txt, .png)
+    -p <percent> trim data on both ends (ex: 0.2)
+    -s <server>  head node for distributed cluster
+    -t <type>    alternate type of distribution plot
     --version
 
 """
+import os
 from docopt import docopt
 import pandas as pd
-from stemgraphic import stem_text, stem_graphic
+from stemgraphic import stem_text, stem_graphic, stem_dot, stem_hist, stem_kde, stem_line, dd
+
+
+type_to_alias = {
+    'dot': stem_dot,
+    'hist': stem_hist,
+    'graphic': stem_graphic,
+    'kde': stem_kde,
+    'line': stem_line,
+    'text': stem_text
+}
 
 
 if __name__ == "__main__":
-    arguments = docopt(__doc__, version='Stem_graphic 0.3.3')
+    arguments = docopt(__doc__, version='Stemgraphic 0.3.4')
     filename = arguments['<input>']
-    if filename[-4:] in ('xlsx', '.xls'):
-        df = pd.read_excel(filename)
-        if arguments['-d']:
-            print(df.describe())
+    try:
+        statinfo = os.stat(filename)  # file could be on hdfs or s3
+        filesize = statinfo.st_size
+        if filesize > 2*1024**3:  # 2GB, consider large
+            large = True
+        else:
+            large = arguments['-f']
+
+    except FileNotFoundError:
+        # doesn't exist, or is distributed.
+        filesize = 0
+        large = True
+    trim = arguments.get('-p', False)
+    server = arguments.get('-s', False)
+    if server:
+        large = True  # force it when server is specified
+    if dd and large:  # dask is available
+        data_frame = dd
+        if server:
+            from distributed import Client
+            client = Client(server)  # distributed, head node
+            print(client.ncores())
     else:
-        df = pd.read_csv(filename)
-        if arguments['-d']:
-            print(df.describe())
-    x = df.ix[:, int(arguments['-c'])] if arguments['-c'] else df
+        data_frame = pd
+    if filename[-4:] in ('xlsx', '.xls'):
+        df = pd.read_excel(filename)  # no way an excel sheet needs dask
+    elif filename[-4:] == '.tsv':
+        df = data_frame.read_table(filename)
+    else:
+        if arguments['-c'] is not None:
+            df = data_frame.read_csv(filename, usecols=[int(arguments['-c'])])
+        else:
+            df = data_frame.read_csv(filename)
+    if arguments['-d']:
+        print(df.describe())
+
     if arguments['-o']:
-        fig, ax = stem_graphic(x)
+        fig, ax = type_to_alias.get(arguments.get('-t', 'graphic'), stem_graphic)(df, trim=trim)
         fig.savefig(arguments['-o'])
     else:
-        stem_text(x, outliers=True)
+        type_to_alias.get(arguments.get('-t', 'text'), stem_text)(df, outliers=True, trim=trim)
