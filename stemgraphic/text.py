@@ -63,9 +63,9 @@ def stem_data(x, column=None, display=300, leaf_order=1, break_on=None, scale=No
             x = x.sample(frac=frac, random_state=random_state).compute().values
         if persistence is not None:
                 if persistence[-4:] == '.pkl':
-                    x.to_pickle(persistence)
+                    pd.Dataframe(x).to_pickle(persistence)
                 else:
-                    x.to_csv(persistence)  # TODO: add feather, hdf5 etc
+                    pd.Dataframe(x).to_csv(persistence)  # TODO: add feather, hdf5 etc
         n = display
 
     if n <= 300:
