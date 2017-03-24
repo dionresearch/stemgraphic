@@ -5,7 +5,7 @@ Stem and leaf plot from a csv or excel spreadsheet using best defaults. Can do t
 graphic, hist, line).
 
 Usage:
-    stem <input> [-c <column>] [-d] [-f] [-o <file>] [-p <percent>] [-s <server>] [-t <type>]
+    stem <input> [-c <column>] [-d] [-f] [-k <file>] [-o <file>] [-p <percent>] [-s <server>] [-t <type>]
     stem -h | --help
     stem --version
 
@@ -14,6 +14,7 @@ Options:
     -c <column>  column index
     -d           describe the data
     -f           force dask
+    -k <file>    persist sample to file (.csv, .pkl)
     -o <file>    output file (.txt, .png)
     -p <percent> trim data on both ends (ex: 0.2)
     -s <server>  head node for distributed cluster
@@ -38,7 +39,7 @@ type_to_alias = {
 
 
 if __name__ == "__main__":
-    arguments = docopt(__doc__, version='Stemgraphic 0.3.5')
+    arguments = docopt(__doc__, version='Stemgraphic 0.3.6')
     filename = arguments['<input>']
     try:
         statinfo = os.stat(filename)  # file could be on hdfs or s3
@@ -54,6 +55,7 @@ if __name__ == "__main__":
         large = True
     trim = arguments.get('-p', False)
     server = arguments.get('-s', False)
+    persistence = arguments.get('-k', None)
     if server:
         large = True  # force it when server is specified
     if dd and large:  # dask is available
@@ -80,4 +82,7 @@ if __name__ == "__main__":
         fig, ax = type_to_alias.get(arguments.get('-t', 'graphic'), stem_graphic)(df, trim=trim)
         fig.savefig(arguments['-o'])
     else:
-        type_to_alias.get(arguments.get('-t', 'text'), stem_text)(df, outliers=True, trim=trim)
+        type_to_alias.get(arguments.get('-t', 'text'), stem_text)(df,
+                                                                  outliers=True,
+                                                                  persistence=persistence,
+                                                                  trim=trim)

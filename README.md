@@ -17,7 +17,7 @@ For an in depth look at
 # Installation
 
 Stemgraphic requires docopt, matplotlib and pandas. Optionally, having Scipy installed will give you secondary plots 
-and Dask (see requirements.txt for all needed to run all the functional tests) will allow for out of core, big data 
+and Dask (see requirements_dev.txt for all needed to run all the functional tests) will allow for out of core, big data
 visualization.
 
 Installation is simple:
@@ -30,6 +30,12 @@ or from this cloned repository, in the package root:
 
 
 # Latest changes
+
+Persist sample from command line tool (-k filename.pkl or -k filename.csv).
+
+Windows compatible bat file wrapper (stem.bat).
+
+Added full command line access to dask distributed server (-d, -s, use file in '' when using glob / wildcard).
 
 For operations with dask, performance has been increased by 25% in this latest release, by doing a compute
 once of min, max and count all at once. Count replaces len(x).
