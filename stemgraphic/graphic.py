@@ -179,12 +179,12 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
             if aggregation:
                 ax.text(cnt + offset, 0, tot, fontsize=aggr_fontsize, rotation=90, color=aggr_fontcolor,
                         bbox={'facecolor': aggr_facecolor, 'alpha': alpha, 'pad': pad} if aggr_facecolor is not None
-                        else {},
+                        else {'alpha': 0},
                         fontweight=aggr_fontweight, va='center', ha='right' if mirror else 'left')
             # STEM
             ax.text(cnt + offset, 1.5, stem, fontweight=stem_fontweight, color=stem_fontcolor,
                     bbox={'facecolor': stem_facecolor, 'alpha': alpha, 'pad': pad} if stem_facecolor is not None
-                    else {},
+        else {'alpha': 0},
                     fontsize=stem_fontsize, va='center', ha='right' if mirror else 'left')
 
             # LEAF
@@ -196,12 +196,12 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
             if aggregation:
                 ax.text(-0.5, cnt + 0.5, tot, fontsize=aggr_fontsize, color=aggr_fontcolor,
                         bbox={'facecolor': aggr_facecolor, 'alpha': alpha, 'pad': pad} if aggr_facecolor is not None
-                        else {},
+                        else {'alpha': 0},
                         fontweight=aggr_fontweight, va='center', ha='right' if mirror else 'left')
             # STEM
             ax.text(2.4, cnt + 0.5, stem, fontweight=stem_fontweight, color=stem_fontcolor,
                     bbox={'facecolor': stem_facecolor, 'alpha': alpha, 'pad': pad} if stem_facecolor is not None
-                    else {},
+                    else {'alpha': 0},
                     fontsize=stem_fontsize, va='center', ha='left' if mirror else 'right')
 
             # LEAF

@@ -22,7 +22,7 @@ Options:
     --version
 
 """
-import os
+
 from docopt import docopt
 import pandas as pd
 from stemgraphic import stem_text, stem_graphic, stem_dot, stem_hist, stem_kde, stem_line, dd
