@@ -1,9 +1,122 @@
+""" Stemgraphic.graphic
+
+Stemgraphic provides a complete set of functions to handle everything related to stem-and-leaf plots.
+Stemgraphic.graphic is a module implementing a graphical stem-and-leaf plot function and a stem-and-leaf heatmap plot
+function for numerical data.
+"""
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
+import pandas as pd
+import seaborn as sns
 
 from .helpers import key_calc, legend, min_max_count, dd
 from .text import stem_data
+
+
+def heatmap(df, annotate=False, asFigure=False, ax=None, column=None, compact=False, display=900,
+            interactive=True, persistence=None, random_state=None, scale=None,
+            trim=False, trim_blank=True, unit='', zoom=None):
+    """ heatmap
+
+        The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
+        they are left in their respective columns. Row '42' and Column '7' would have the count of numbers starting
+        with '427' of the given scale.
+
+        The heatmap is useful to look at patterns. For distribution, stem_graphic is better suited.
+
+    :param df: list, numpy array, time series, pandas or dask dataframe
+    :param annotate: display annotations (Z) on heatmap
+    :param asFigure: return plot as plotly figure (for web applications)
+    :param ax:  matplotlib axes instance, usually from a figure or other plot
+    :param column: specify which column (string or number) of the dataframe to use,
+                   else the first numerical is selected
+    :param compact: do not display empty stem rows (with no leaves), defaults to False
+    :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
+    :param persistence: filename. save sampled data to disk, either as pickle (.pkl) or csv (any other extension)
+    :param random_state: initial random seed for the sampling process, for reproducible research
+    :param scale: force a specific scale for building the plot. Defaults to None (automatic).
+    :param trim: ranges from 0 to 0.5 (50%) to remove from each end of the data set, defaults to None
+    :param trim_blank: remove the blank between the delimiter and the first leaf, defaults to True
+    :param unit:  specify a string for the unit ('$', 'Kg'...). Used for outliers and for legend, defaults to ''
+    :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
+    :return: count matrix, scale and matplotlib ax or figure if interactive and asFigure are True
+    """
+    try:
+        cols = len(df.columns)
+    except AttributeError:
+        # wasn't a multi column data frame, might be a list
+        cols = 1
+    if cols > 1:
+        if column is None:
+            # We have to figure out the first numerical column on our own
+            start_at = 1 if df.columns[0] == 'id' else 0
+            for i in range(start_at, len(df.columns)):
+                if df.dtypes[i] in ('int64', 'float64'):
+                    column = i
+                    break
+        if dd:
+            df = df[df.columns.values[column]]
+        else:
+            df = df.ix[:, column]
+
+    min_val, max_val, total_rows = min_max_count(df)
+
+    scale_factor, pair, rows = stem_data(df, break_on=None, column=column, compact=compact,
+                                         display=display, leaf_order=1, omin=min_val, omax=max_val,
+                                         outliers=False, persistence=persistence, random_state=random_state,
+                                         scale=scale, total_rows=total_rows, trim=trim, zoom=zoom)
+    max_leaves = len(max(rows, key=len))
+
+    if max_leaves > display / 3:
+        # more than 1/3 on a single stem, let's try one more time
+        if random_state:
+            random_state += 1
+        scale_factor2, pair2, rows2 = stem_data(df, break_on=None, column=column, compact=compact,
+                                                display=display, leaf_order=1, omin=min_val, omax=max_val,
+                                                outliers=False, persistence=persistence, random_state=random_state,
+                                                scale=scale, total_rows=total_rows, trim=trim, zoom=zoom)
+        max_leaves2 = len(max(rows2, key=len))
+        if max_leaves2 < max_leaves:
+            max_leaves = max_leaves2
+            scale_factor = scale_factor2
+            pair = pair2
+            rows = rows2
+
+    split_rows = [i.split('|') for i in rows]
+
+    # redo the leaves in a matrix form
+    # this should be refactored as an option for stem_data, like rows_only for ngram_data
+    matrix = []
+    for stem, leaves in split_rows:
+        row_count = [stem]
+        for num in '0123456789':
+            row_count.append(leaves.count(num))
+        matrix.append(row_count)
+
+    num_matrix = pd.DataFrame(matrix, columns=['stem', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
+    num_matrix.set_index('stem', inplace=True)
+    if trim_blank:
+        num_matrix.applymap(lambda x: x.strip() if type(x) is str else x)
+
+    title = 'Stem-and-leaf heatmap ({} x {} {})'.format(pair.replace('|', '.'), scale_factor, unit)
+    if interactive:
+        try:
+            fig = num_matrix.iplot(kind='heatmap', asFigure=asFigure, title=title)
+        except AttributeError:
+            if ax is None:
+                fig, ax = plt.subplots(figsize=(9, 9))
+                plt.yticks(rotation=0)
+            ax.set_title(title)
+            sns.heatmap(num_matrix, annot=annotate, ax=ax)
+    else:
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(12, 12))
+            plt.yticks(rotation=0)
+        ax.set_title(title)
+        sns.heatmap(num_matrix, annot=annotate, ax=ax)
+    return num_matrix, scale_factor, fig if asFigure else ax
 
 
 def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color='b', bar_outline=None,
@@ -12,8 +125,10 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
                  outliers=None, outliers_color='r', persistence=None, primary_kw=None, random_state=None, scale=None,
                  secondary_kw=None, secondary_plot=None, trim=False, trim_blank=True, underline_color=None,
                  unit='', zoom=None):
-    """ A graphical stem and leaf plot.
+    """ stem_graphic
 
+    A graphical stem and leaf plot. stem_graphic provides horizontal, vertical or mirrored layouts, sorted in
+    ascending or descending order, with sane default settings for the visuals, legend, median and outliers.
 
     :param df: list, numpy array, time series, pandas or dask dataframe
     :param aggregation: Boolean for sum, else specify function
@@ -98,27 +213,24 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
     min_val, max_val, total_rows = min_max_count(df)
 
     scale_factor, pair, rows = stem_data(df, break_on=break_on, column=column, compact=compact,
-                                         display=display, omin=min_val, omax=max_val, outliers=False,
-                                         persistence=persistence, random_state=random_state, scale=scale,
-                                         total_rows=total_rows, trim=trim, zoom=zoom)
+                                         display=display, leaf_order=leaf_order, omin=min_val, omax=max_val,
+                                         outliers=False, persistence=persistence, random_state=random_state,
+                                         scale=scale, total_rows=total_rows, trim=trim, zoom=zoom)
     max_leaves = len(max(rows, key=len))
     if max_leaves > display / 3:
         # more than 1/3 on a single stem, let's try one more time
         if random_state:
             random_state += 1
         scale_factor2, pair2, rows2 = stem_data(df, break_on=break_on, column=column, compact=compact,
-                                                display=display, omin=min_val, omax=max_val, outliers=False,
-                                                persistence=persistence, random_state=random_state, scale=scale,
-                                                total_rows=total_rows, trim=trim, zoom=zoom)
+                                                display=display, leaf_order=leaf_order, omin=min_val, omax=max_val,
+                                                outliers=False, persistence=persistence, random_state=random_state,
+                                                scale=scale, total_rows=total_rows, trim=trim, zoom=zoom)
         max_leaves2 = len(max(rows2, key=len))
         if max_leaves2 < max_leaves:
             max_leaves = max_leaves2
             scale_factor = scale_factor2
             pair = pair2
             rows = rows2
-
-    spread = (max_val - min_val)
-    half_spread = spread / 2
 
     st, lf = pair.split('|')
     n = display if total_rows > display else total_rows
@@ -172,7 +284,7 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
                         bbox={'facecolor': median_color, 'alpha': alpha, 'pad': pad}, alpha=leaf_alpha,
                         ha='left', va='top' if mirror else 'bottom', rotation=90)
             else:
-                ax.text(2.5 + med / 2.23, cnt + (asc == False), '_', fontsize=base_fontsize, color=leaf_color,
+                ax.text(2.5 + med / 2.23, cnt + (asc == False), '_', fontsize=base_fontsize, color=leaf_color,  # NOQA
                         bbox={'facecolor': median_color, 'alpha': alpha, 'pad': pad}, alpha=leaf_alpha,
                         ha='left', va='bottom')
         if flip_axes:
@@ -184,7 +296,7 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
             # STEM
             ax.text(cnt + offset, 1.5, stem, fontweight=stem_fontweight, color=stem_fontcolor,
                     bbox={'facecolor': stem_facecolor, 'alpha': alpha, 'pad': pad} if stem_facecolor is not None
-        else {'alpha': 0},
+                    else {'alpha': 0},
                     fontsize=stem_fontsize, va='center', ha='right' if mirror else 'left')
 
             # LEAF
@@ -212,7 +324,7 @@ def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color=
                 ax.hlines(cnt, 2.6, 2.6 + len(leaf)/2, color=underline_color)
     last_val = key_calc(last_stem, leaf, scale_factor)
     if remove_duplicate and (np.isclose(first_val, min_val) or np.isclose(first_val, max_val))\
-                        and (np.isclose(last_val, min_val) or np.isclose(last_val, max_val)):
+                        and (np.isclose(last_val, min_val) or np.isclose(last_val, max_val)):  # NOQA
         outliers = False
     cur_font = FontProperties()
     if flip_axes:
