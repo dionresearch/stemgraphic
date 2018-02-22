@@ -1,3 +1,8 @@
+""" helpers.py
+
+Helper functions for stemgraphic.
+"""
+import unicodedata
 import pandas as pd
 try:
     import dask.dataframe as dd
@@ -18,7 +23,9 @@ def key_calc(stem, leaf, scale):
 
 def legend(ax, x, y, asc, flip_axes, mirror, stem, leaf, scale, delimiter_color, aggregation=True, cur_font=None,
            display=10, pos='best', unit=''):
-    """
+    """ legend
+
+    Builds a graphical legend for numerical stem-and-leaf plots.
 
     :param display:
     :param cur_font:
@@ -88,7 +95,9 @@ def legend(ax, x, y, asc, flip_axes, mirror, stem, leaf, scale, delimiter_color,
 
 
 def min_max_count(x, column=0):
-    """Handles min, max and count. This works on numpy, lists, pandas and dask dataframes.
+    """ min_max_count
+
+    Handles min, max and count. This works on numpy, lists, pandas and dask dataframes.
 
     :param column:
     :param x: list, numpy array, series, pandas or dask dataframe
@@ -109,13 +118,72 @@ def min_max_count(x, column=0):
 
 
 def percentile(data, alpha):
-    """
+    """ percentile
 
     :param data: list, numpy array, time series or pandas dataframe
     :param alpha: between 0 and 0.5 proportion to select on each side of the distribution
     :return: the actual value at that percentile
     """
     n = sorted(data)
-    l = int(round(alpha * len(data) + 0.5))
-    h = int(round((1-alpha) * len(data) + 0.5))
-    return n[l - 1], n[h - 1]
+    low = int(round(alpha * len(data) + 0.5))
+    high = int(round((1-alpha) * len(data) + 0.5))
+    return n[low - 1], n[high - 1]
+
+
+def stack_columns(row):
+    """ stack_columns
+
+    stack multiple columns into a single stacked value
+    :param row: a row of letters
+    :return: stacked string
+    """
+    row = row.dropna()
+    stack = ''
+    for i, col in row.iteritems():
+        stack += (str(i)*int(col))
+    return stack
+
+
+#: Typographical apostrophe - ex: I’m, l’arbre
+APOSTROPHE = '’'
+
+#: Straight quote mark - ex: 'INCONCEIVABLE'
+QUOTE = '\''
+
+#: Double straight quote mark
+DOUBLE_QUOTE = '\"'
+
+#: Characters to filter. Does a relatively good job on a majority of texts
+#: '- ' and '–' is to skip quotes in many plays and dialogues in books, especially French.
+CHAR_FILTER = [
+    '\t', '\n', '\\', '/', '`', '*', '_', '{', '}', '[', ']', '(', ')', '<', '>',
+    '#', '=', '+', '- ', '–', '.', ';', ':', '!', '?', '|', '$', QUOTE, DOUBLE_QUOTE, '…'
+]
+
+
+#: Similar purpose to CHAR_FILTER, ut keeps the period. The last word of each sentence will end with a '.'
+#: Useful for manipulating the dataframe returned by the various visualizations and ngram_data,
+#: to break down frequencies by sentence instead of the full text or list.
+NO_PERIOD_FILTER = [
+    '\t', '\n', '\\', '/', '`', '*', '_', '{', '}', '[', ']', '(', ')', '<', '>',
+    '#', '=', '+', '- ', '–', ';', ':', '!', '?', '|', '$', QUOTE, DOUBLE_QUOTE
+]
+
+
+#: Default definition of standard letters
+#: remove_accent has to be called explicitely for any of these letters to match their
+#: accented counterparts
+LETTERS = 'abcdefghijklmnopqrstuvwxyz'
+
+#: List of non alpha characters. Temporary - I want to balance flexibility with convenience, but
+#: still looking at options.
+NON_ALPHA = [
+    '-', '+', '/', '[', ']', '_', '£',
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+    '!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+    ';',
+    QUOTE, DOUBLE_QUOTE, APOSTROPHE,
+    '?',
+    '¡', '¿',  # spanish
+    '«', '»'
+]
