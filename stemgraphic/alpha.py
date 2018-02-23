@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """ stemgraphic.alpha.
 
+
+BRAND NEW in V.0.5.0!
+
 Stemgraphic provides a complete set of functions to handle everything related to stem-and-leaf plots. alpha is a
 module of the stemgraphic package to add support for categorical and text variables.
 

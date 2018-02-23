@@ -1,5 +1,7 @@
 """ stemgraphic.num.
 
+BRAND NEW in V.0.5.0!
+
 Stemgraphic provides a complete set of functions to handle everything related to stem-and-leaf plots. num is a
 module of the stemgraphic package to handle numerical variables.
 
