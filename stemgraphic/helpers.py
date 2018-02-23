@@ -79,7 +79,7 @@ def legend(ax, x, y, asc, flip_axes, mirror, stem, leaf, scale, delimiter_color,
                 formula.format(scale, key_calc(stem, leaf, scale), unit),
                 va='center', ha=ha, fontproperties=cur_font)
         cur_font.set_style('italic')
-        ax.text(x - start_at + 0.3, y + 1, leaf, bbox={'facecolor': 'blue', 'alpha': 0.2, 'pad': 2},
+        ax.text(x - start_at + 0.3, y + 1, leaf, bbox={'facecolor': 'C0', 'alpha': 0.15, 'pad': 2},
                 va='center', ha=ha, fontproperties=cur_font)
         ax.text(x - start_at + (len(stem) + offset + len(leaf) + 0.6)/1.7 + secondary,
                 y + 1, '.'+leaf, va='center', ha=ha, fontproperties=cur_font)

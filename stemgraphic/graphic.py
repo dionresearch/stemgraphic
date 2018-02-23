@@ -119,8 +119,8 @@ def heatmap(df, annotate=False, asFigure=False, ax=None, column=None, compact=Fa
     return num_matrix, scale_factor, fig if asFigure else ax
 
 
-def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color='b', bar_outline=None,
-                 break_on=None, column=None, compact=False, delimiter_color='r', display=900, flip_axes=False,
+def stem_graphic(df, alpha=0.15, aggregation=True, asc=True, ax=None, bar_color='C0', bar_outline=None,
+                 break_on=None, column=None, compact=False, delimiter_color='C3', display=900, flip_axes=False,
                  font_kw=None, leaf_color='k', leaf_order=1, legend_pos='best', median_color='magenta', mirror=False,
                  outliers=None, outliers_color='r', persistence=None, primary_kw=None, random_state=None, scale=None,
                  secondary_kw=None, secondary_plot=None, trim=False, trim_blank=True, underline_color=None,
