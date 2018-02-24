@@ -49,6 +49,14 @@ or from this cloned repository, in the package root:
 Latest changes
 ==============
 
+Version 0.5.1
+-------------
+
+
+- stem_text legend fix
+- missed adding the code for scatter plots
+- more notebooks
+
 Version 0.5.0
 -------------
 
