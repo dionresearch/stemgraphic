@@ -1,11 +1,13 @@
 from setuptools import setup
 
 setup(name='stemgraphic',
-      version='0.3.7',
+      version='0.5.0',
       install_requires=[
           "docopt",
           "matplotlib",
           "pandas",
+          "python-levenshtein",
+          "seaborn"
       ],
       scripts=['bin/stem','bin/stem.bat'],
       description='Graphic and text stem-and-leaf plots',

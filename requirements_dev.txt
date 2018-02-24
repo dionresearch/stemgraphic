@@ -5,6 +5,7 @@ distributed
 docopt
 matplotlib
 pandas
+python-levenshtein
 scipy
 seaborn
 toolz

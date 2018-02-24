@@ -22,7 +22,7 @@ Options:
     --version
 
 """
-
+import os
 from docopt import docopt
 import pandas as pd
 from stemgraphic import stem_text, stem_graphic, stem_dot, stem_hist, stem_kde, stem_line, dd
@@ -39,8 +39,10 @@ type_to_alias = {
 
 
 if __name__ == "__main__":
-    arguments = docopt(__doc__, version='Stemgraphic 0.3.6')
+    arguments = docopt(__doc__, version='Stemgraphic 0.5.0')
     filename = arguments['<input>']
+
+    alpha=False
     try:
         statinfo = os.stat(filename)  # file could be on hdfs or s3
         filesize = statinfo.st_size
@@ -73,6 +75,10 @@ if __name__ == "__main__":
     else:
         if arguments['-c'] is not None:
             df = data_frame.read_csv(filename, usecols=[int(arguments['-c'])])
+            if df.dtypes[0] == 'object':
+                print("Specified column is an object, trying stemgraphic.alpha.")
+                from stemgraphic.alpha import stem_graphic, stem_text
+                alpha=True
         else:
             df = data_frame.read_csv(filename)
     if arguments['-d']:
@@ -82,7 +88,10 @@ if __name__ == "__main__":
         fig, ax = type_to_alias.get(arguments.get('-t', 'graphic'), stem_graphic)(df, trim=trim)
         fig.savefig(arguments['-o'])
     else:
-        type_to_alias.get(arguments.get('-t', 'text'), stem_text)(df,
+        if alpha:
+            type_to_alias.get(arguments.get('-t', 'text'), stem_text)(df.iloc[:,0].tolist(), caps=False)
+        else:
+            type_to_alias.get(arguments.get('-t', 'text'), stem_text)(df,
                                                                   outliers=True,
                                                                   persistence=persistence,
                                                                   trim=trim)

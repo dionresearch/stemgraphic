@@ -1,3 +1,5 @@
 docopt
 matplotlib
 pandas
+python-levenshtein
+seaborn
