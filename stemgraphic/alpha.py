@@ -102,7 +102,7 @@ def heatmap(src, alpha_only=False, annotate=False, asFigure=False, ax=None, caps
         title = 'stem-and-leaf heatmap'
     if interactive:
         try:
-            alpha_matrix.word.T.iplot(kind='heatmap', asFigure=asFigure, title=title)
+            fig = alpha_matrix.word.T.iplot(kind='heatmap', asFigure=asFigure, title=title)
         except AttributeError:
             if ax is None:
                 fig, ax = plt.subplots(figsize=(20, 16))
@@ -360,8 +360,8 @@ def matrix_difference(mat1, mat2, thresh=0):
 
 
 def ngram_data(df, alpha_only=False, ascending=True, binary=False, break_on=None, caps=True,
-               char_filter=None, column=None, compact=False,
-               display=750, leaf_order=1, leaf_skip=0, persistence=None, random_state=None, remove_accents=False,
+               char_filter=None, column=None, compact=False, display=750, leaf_order=1, leaf_skip=0,
+               persistence=None, random_state=None, remove_accents=False, reverse=False,
                rows_only=True, sort_by='len', stem_order=1, stem_skip=0, stop_words=None):
     """ ngram_data
 
@@ -425,6 +425,8 @@ def ngram_data(df, alpha_only=False, ascending=True, binary=False, break_on=None
         for ch in char_filter:
             if ch in linecontent:
                 linecontent = linecontent.replace(ch, ',')
+        if reverse:
+            linecontent = linecontent[::-1]
         x = pd.DataFrame({
             'word': linecontent.replace(' ', ',').split(',')
         })
@@ -452,9 +454,17 @@ def ngram_data(df, alpha_only=False, ascending=True, binary=False, break_on=None
         else:
             x_s = x.sample(n=display, random_state=random_state).reset_index()
     else:
-        x = df if column is None else df[column]
-
-        if display is None:
+        try:
+            x = df if column is None else df[column]
+            if reverse:
+                x = x.str[::-1]
+        except KeyError:
+            x = df.copy()
+            if reverse:
+                x = x.applymap(lambda r: r.str[::-1])
+            if column:
+                x = x[x.word.str[:1].isin(column)]
+        if display is None or display > x.shape[0]:
             x_s = x
         else:
             x_s = x.sample(n=display, random_state=random_state).reset_index()
@@ -660,10 +670,121 @@ def radar(word, comparisons, ascending=True, display=100, label=True, metric=Non
     return pol_ax
 
 
+def scatter(source1, source2, alpha_only=True, ascending=False, caps=False, compact=True, display=None,
+            interactive=True, label=False, leaf_order=1, leaf_skip=0, random_state=None,
+            sort_by='alpha', stem_order=1, stem_skip=0, stop_words=None):
+    """ scatter
+
+    :param source1: string, filename, url, list, numpy array, time series, pandas or dask dataframe
+    :param source2: string, filename, url, list, numpy array, time series, pandas or dask dataframe
+    :param alpha_only: only use stems from a-z alphabet (NA on dataframe)
+    :param ascending: stem sorted in ascending order, defaults to True
+    :param asFigure: return plot as plotly figure (for web applications)
+    :param caps: bool, True to be case sensitive, defaults to False, recommended for comparisons.(NA on dataframe)
+    :param compact: do not display empty stem rows (with no leaves), defaults to False
+    :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
+    :param label: bool if True display words centered at coordinate
+    :param leaf_order: how many leaf digits per data point to display, defaults to 1
+    :param leaf_skip: how many leaf characters to skip, defaults to 0 - useful w/shared bigrams: 'wol','wor','woo'
+    :param random_state: initial random seed for the sampling process, for reproducible research
+    :param sort_by: sort by 'alpha' (default) or 'count'
+    :param stem_order: how many stem characters per data point to display, defaults to 1
+    :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
+    :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
+    :return: matplotlib polar ax, dataframe
+    """
+    if isinstance(source1, str):
+        filename = source1
+    else:
+        filename = 'data'
+
+    _, alpha_matrix1, x1 = ngram_data(
+        source1,
+        alpha_only=alpha_only,
+        compact=compact,
+        display=display,
+        leaf_order=leaf_order,
+        leaf_skip=leaf_skip,
+        rows_only=False,
+        random_state=random_state,
+        sort_by=sort_by,
+        stem_order=stem_order,
+        stem_skip=stem_skip,
+        stop_words=stop_words,
+        caps=caps)
+
+    _, alpha_matrix2, x2 = ngram_data(
+        source2,
+        alpha_only=alpha_only,
+        compact=compact,
+        display=display,
+        leaf_order=leaf_order,
+        leaf_skip=leaf_skip,
+        rows_only=False,
+        random_state=random_state,
+        sort_by=sort_by,
+        stem_order=stem_order,
+        stem_skip=stem_skip,
+        stop_words=stop_words,
+        caps=caps)
+    if stem_order is None and leaf_order is None:
+        red = pd.concat([x1.word.value_counts().rename('x'), x2.word.value_counts().rename('y')], axis=1)
+    else:
+        red = pd.concat([x1.ngram.value_counts().rename('x'), x2.ngram.value_counts().rename('y')], axis=1)
+    red.dropna(inplace=True)
+    red['diff'] = red.x - red.y
+    red['categories'] = 'x'
+    red.loc[(red['diff'] < 0), 'categories'] = 'y'
+    red['text'] = red.index.values
+    if interactive:
+        try:
+            fig = red.iplot(kind='scatter', colors=['blue', 'pink'], x='x', y='y', categories='categories',
+                            size=6, text='text', mode='markers+text' if label else 'markers')
+        except AttributeError:
+            print('Interactive plot requested, but cufflinks not loaded. Falling back to matplotlib.')
+            fig = red[red.categories == 'x'].plot(kind='scatter', x='x', y='y', color='C0')
+            red[red.categories == 'y'].plot(ax=ax, kind='scatter', x='x', y='y', color='C3')
+    else:
+        fig = red[red.categories == 'x'].plot(kind='scatter', x='x', y='y', color='C0')
+        red[red.categories == 'y'].plot(ax=fig, kind='scatter', x='x', y='y', color='C3')
+    return red, fig
+
+
+def stem_scatter(source1, source2, alpha_only=True, ascending=False, caps=False, compact=True, display=None,
+            interactive=True, label=False, leaf_order=1, leaf_skip=0, random_state=None,
+            sort_by='alpha', stem_order=1, stem_skip=0, stop_words=None):
+    """ scatter
+
+    :param source1: string, filename, url, list, numpy array, time series, pandas or dask dataframe
+    :param source2: string, filename, url, list, numpy array, time series, pandas or dask dataframe
+    :param alpha_only: only use stems from a-z alphabet (NA on dataframe)
+    :param ascending: stem sorted in ascending order, defaults to True
+    :param asFigure: return plot as plotly figure (for web applications)
+    :param caps: bool, True to be case sensitive, defaults to False, recommended for comparisons.(NA on dataframe)
+    :param compact: do not display empty stem rows (with no leaves), defaults to False
+    :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
+    :param label: bool if True display words centered at coordinate
+    :param leaf_order: how many leaf digits per data point to display, defaults to 1
+    :param leaf_skip: how many leaf characters to skip, defaults to 0 - useful w/shared bigrams: 'wol','wor','woo'
+    :param random_state: initial random seed for the sampling process, for reproducible research
+    :param sort_by: sort by 'alpha' (default) or 'count'
+    :param stem_order: how many stem characters per data point to display, defaults to 1
+    :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
+    :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
+    :return: matplotlib polar ax, dataframe
+    """
+    return scatter(source1=source1, source2=source2, alpha_only=alpha_only, ascending=ascending, caps=caps,
+                   compact=compact, display=display, interactive=interactive, label=label, leaf_order=leaf_order,
+                   leaf_skip=leaf_skip, random_state=random_state, sort_by=sort_by, stem_order=stem_order,
+                   stem_skip=stem_skip,stop_words=stop_words)
+
+
 def stem_text(df, aggr=False, alpha_only=True, ascending=True, binary=False, break_on=None, caps=True,
               column=None, compact=False, display=750,
               legend_pos='top', leaf_order=1, leaf_skip=0, persistence=None, remove_accents=False,
-              rows_only=False, sort_by='len', stem_order=1, stem_skip=0,
+              reverse=False, rows_only=False, sort_by='len', stem_order=1, stem_skip=0,
               stop_words=None, random_state=None):
     """ stem_text
 
@@ -691,6 +812,7 @@ def stem_text(df, aggr=False, alpha_only=True, ascending=True, binary=False, bre
     :param persistence:  will save the sampled datafrae to  filename (with csv or pkl extension) or None
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param remove_accents: bool if True strips accents (NA on dataframe)
+    :param reverse: bool if True look at words from right to left
     :param rows_only: by default returns only the stem and leaf rows. If false, also return the matrix and dataframe
     :param sort_by: default to 'len', can also be 'alpha'
     :param stem_order: how many stem characters per data point to display, defaults to 1
@@ -702,12 +824,12 @@ def stem_text(df, aggr=False, alpha_only=True, ascending=True, binary=False, bre
     rows, alpha_matrix, x = ngram_data(df, alpha_only=alpha_only, ascending=ascending, binary=binary, break_on=break_on,
                                        caps=caps, column=column, compact=compact, display=display,
                                        leaf_order=leaf_order, leaf_skip=leaf_skip, persistence=persistence,
-                                       random_state=random_state, remove_accents=remove_accents, rows_only=rows_only,
-                                       sort_by=sort_by,
+                                       random_state=random_state, remove_accents=remove_accents,
+                                       reverse=reverse, rows_only=rows_only, sort_by=sort_by,
                                        stem_order=stem_order, stem_skip=stem_skip, stop_words=stop_words)
 
     if legend_pos == 'top':
-        print('{}: \n{}\nsampled {:>4}\n'.format(column if column else '', x.describe(), display))
+        print('{}: \n{}\nsampled {:>4}\n'.format(column if column else '', x.word.describe(include='all'), display))
 
     cnt = 0
     find = re.compile("([{}-z?])".format(break_on))
@@ -742,7 +864,8 @@ def stem_text(df, aggr=False, alpha_only=True, ascending=True, binary=False, bre
             print(mask.format(*argsh))
 
     if legend_pos is not None and legend_pos != 'top':
-        print('Alpha stem and leaf {}: \n{}\nsampled {:>4}\n'.format(column if column else '', x.describe(), display))
+        print('Alpha stem and leaf {}: \n{}\nsampled {:>4}\n'.format(
+            column if column else '', x.word.describe(include='all'), display))
 
     if rows_only:
         return rows
@@ -756,7 +879,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
                  delimiter_color='C3', display=750, figure_only=True, flip_axes=False,
                  font_kw=None, leaf_color='k', leaf_order=1, leaf_skip=0, legend_pos='best',
                  median_color='magenta', mirror=False, persistence=None, primary_kw=None,
-                 random_state=None, remove_accents=False, secondary=False,
+                 random_state=None, remove_accents=False, reverse=False, secondary=False,
                  show_stem=True, sort_by='len', stop_words=None, stem_order=1, stem_skip=0,
                  title=None, trim_blank=False, underline_color=None):
     """ stem_graphic
@@ -800,6 +923,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
     :param primary_kw: stem-and-leaf plot additional arguments
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param remove_accents: bool if True strips accents (NA on dataframe)
+    :param reverse: bool if True look at words from right to left
     :param secondary: bool if True, this is a secondary plot - mostly used for back-to-back plots
     :param show_stem: bool if True (default) displays the stems
     :param sort_by: default to 'len', can also be 'alpha'
@@ -852,6 +976,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
         persistence=persistence,
         random_state=random_state,
         remove_accents=remove_accents,
+        reverse=reverse,
         rows_only=False,
         sort_by=sort_by,
         stem_order=stem_order,
@@ -878,6 +1003,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
             leaf_order=leaf_order,
             leaf_skip=leaf_skip,
             random_state=random_state,
+            reverse=reverse,
             rows_only=False,
             sort_by=sort_by,
             stem_order=stem_order,
@@ -921,7 +1047,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
         _ = stem_graphic(df2,  # NOQA
                          ax=ax1, aggregation=mirror and aggregation, alpha_only=alpha_only, ascending=ascending,
                          break_on=break_on, column=column, combined=combined, display=display, flip_axes=False,
-                         mirror=not mirror, secondary=True, random_state=random_state,
+                         mirror=not mirror, reverse=reverse, secondary=True, random_state=random_state,
                          show_stem=True, stop_words=stop_words)
 
     if ax is None:
@@ -1091,7 +1217,7 @@ def stem_freq_plot(df, alpha_only=False, asFigure=False, column=None, compact=Tr
         try:
             if column:
                 # one or multiple "columns" specified, we filter those stems
-                alpha_matrix.loc[column].word.iplot(kind=kind, barmode='stack', asFigure=asFigure, title=title)
+                fig = alpha_matrix.loc[column].word.iplot(kind=kind, barmode='stack', asFigure=asFigure, title=title)
             else:
                 alpha_matrix.word.iplot(kind=kind, barmode='stack', asFigure=asFigure, title=title)
         except AttributeError:
@@ -1400,6 +1526,38 @@ def word_radar(word, comparisons, ascending=True, display=100, label=True, metri
 
     return radar(word, comparisons, ascending=ascending, display=display, label=label, metric=metric,
                  min_distance=min_distance, max_distance=max_distance, random_state=random_state, sort_by=sort_by)
+
+
+def word_scatter(source1, source2, alpha_only=True, ascending=False, caps=False, compact=True, display=None,
+            interactive=True, label=False, leaf_order=None, leaf_skip=0, random_state=None,
+            sort_by='alpha', stem_order=None, stem_skip=0, stop_words=None):
+    """ word_scatter
+
+    Scatter plot based on word frequencies of two sources.
+
+    :param source1: string, filename, url, list, numpy array, time series, pandas or dask dataframe
+    :param source2: string, filename, url, list, numpy array, time series, pandas or dask dataframe
+    :param alpha_only: only use stems from a-z alphabet (NA on dataframe)
+    :param ascending: stem sorted in ascending order, defaults to True
+    :param asFigure: return plot as plotly figure (for web applications)
+    :param caps: bool, True to be case sensitive, defaults to False, recommended for comparisons.(NA on dataframe)
+    :param compact: do not display empty stem rows (with no leaves), defaults to False
+    :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
+    :param label: bool if True display words centered at coordinate
+    :param leaf_order: how many leaf digits per data point to display, defaults to 1
+    :param leaf_skip: how many leaf characters to skip, defaults to 0 - useful w/shared bigrams: 'wol','wor','woo'
+    :param random_state: initial random seed for the sampling process, for reproducible research
+    :param sort_by: sort by 'alpha' (default) or 'count'
+    :param stem_order: how many stem characters per data point to display, defaults to 1
+    :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
+    :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
+    :return: matplotlib polar ax, dataframe
+    """
+    return scatter(source1=source1, source2=source2, alpha_only=alpha_only, ascending=ascending, caps=caps,
+                   compact=compact, display=display, interactive=interactive, label=label, leaf_order=leaf_order,
+                   leaf_skip=leaf_skip, random_state=random_state, sort_by=sort_by, stem_order=stem_order,
+                   stem_skip=stem_skip,stop_words=stop_words)
 
 
 def word_sunburst(words, alpha_only=True, ascending=False, caps=False, compact=True, display=None, hole=True,
