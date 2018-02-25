@@ -2,7 +2,7 @@
 
 Helper functions for stemgraphic.
 """
-import unicodedata
+import matplotlib.tri as tri
 import pandas as pd
 try:
     import dask.dataframe as dd
