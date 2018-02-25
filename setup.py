@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='stemgraphic',
-      version='0.5.1',
+      version='0.5.2',
       install_requires=[
           "docopt",
           "matplotlib",
