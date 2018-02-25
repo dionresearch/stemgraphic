@@ -43,6 +43,7 @@ or from this cloned repository, in the package root:
 
 - added documentation for scatter plots
 - added jitter to scatter plots
+- added log scale to scatter plots
 - more notebooks
 
 ## Version 0.5.1
