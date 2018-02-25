@@ -39,6 +39,12 @@ or from this cloned repository, in the package root:
 
 # Latest changes
 
+## Version 0.5.2
+
+- added documentation for scatter plots
+- added jitter to scatter plots
+- more notebooks
+
 ## Version 0.5.1
 
 - stem_text legend fix
@@ -101,15 +107,13 @@ Added the companion PDF as it will be presented at PyData Carolinas 2016.
 
 # TODO
 
-Plenty... but to start:
-
-- back to back and scale calculation
 - multivariate support
 - provide support for secondary plots with dask
 - automatic dense layout
 - add a way to provide an alternate function to the sampling
 - support for spark rdds and/or sparkling pandas
 - create a bokeh version. Ideally rbokeh too.
-- interactive version based on the above
 - add unit tests
 - add feather, hdf5 etc support, particularly on sample persistence
+- more charts
+- more examples
