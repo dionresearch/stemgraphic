@@ -7,7 +7,8 @@ Overview
 John Tukey’s stem-and-leaf plot first appeared in 1970. Although very
 useful back then, it cannot handle more than 300 data points and is
 completely text-based. Stemgraphic is a very easy to use python package
-providing a solution to these limitations.
+providing a solution to these limitations (no size limit, graphical
+tool). It also supports **categorical** and **text** as input.
 
 A typical stem\_graphic output:
 
@@ -49,13 +50,32 @@ or from this cloned repository, in the package root:
 Latest changes
 ==============
 
+Version 0.5.3
+-------------
+
+-  scatter 3d support
+-  added 3rd source to compare (in 3d) with scatter plots
+-  more scatter plot fixes
+-  some warnings added to deal with 3d and log scale issues
+-  added fig\_xy to scatter - useful to quickly adjust figsize in a
+   notebook
+-  added normalize, percentage and whole (integer) to scatter
+-  added alpha to scatter
+
+Version 0.5.2
+-------------
+
+-  added documentation for scatter plots
+-  added jitter to scatter plots
+-  added log scale to scatter plots
+-  more notebooks
+
 Version 0.5.1
 -------------
 
-
-- stem_text legend fix
-- missed adding the code for scatter plots
-- more notebooks
+-  stem\_text legend fix
+-  missed adding the code for scatter plots
+-  more notebooks
 
 Version 0.5.0
 -------------
@@ -120,15 +140,13 @@ Added the companion PDF as it will be presented at PyData Carolinas
 TODO
 ====
 
-Plenty... but to start:
-
--  back to back and scale calculation
 -  multivariate support
 -  provide support for secondary plots with dask
 -  automatic dense layout
 -  add a way to provide an alternate function to the sampling
 -  support for spark rdds and/or sparkling pandas
 -  create a bokeh version. Ideally rbokeh too.
--  interactive version based on the above
 -  add unit tests
 -  add feather, hdf5 etc support, particularly on sample persistence
+-  more charts
+-  more examples

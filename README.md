@@ -5,7 +5,8 @@
 
 John Tukey’s stem-and-leaf plot first appeared in 1970. Although very useful back then, it cannot handle 
 more than 300 data points and is completely text-based. Stemgraphic is a very easy to use python package 
-providing a solution to these limitations.
+providing a solution to these limitations (no size limit, graphical tool). It also supports **categorical**
+and **text** as input.
 
 A typical stem_graphic output:
 
@@ -38,6 +39,16 @@ or from this cloned repository, in the package root:
 
 
 # Latest changes
+
+## Version 0.5.3
+
+- scatter 3d support
+- added 3rd source to compare (in 3d) with scatter plots
+- more scatter plot fixes
+- some warnings added to deal with 3d and log scale issues
+- added fig_xy to scatter - useful to quickly adjust figsize in a notebook
+- added normalize, percentage and whole (integer) to scatter
+- added alpha to scatter
 
 ## Version 0.5.2
 
