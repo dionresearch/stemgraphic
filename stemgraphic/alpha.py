@@ -869,7 +869,7 @@ def scatter(src1, src2, src3=None, alpha=0.5, alpha_only=True, ascending=True, a
                                 size=red.index.str.len(), text='text' if label else 'hovertext', hoverinfo='text',
                                 mode='markers+text' if label else 'markers', asFigure=asFigure)
         except AttributeError:
-            print('Interactive plot requested, but cufflinks not loaded. Falling back to matplotlib.')
+            warn('Interactive plot requested, but cufflinks not loaded. Falling back to matplotlib.')
             interactive=False
             # in case %matplotlib notebook
             fig_xy = (10,10)
@@ -1208,7 +1208,8 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
 
     if df2:
         if flip_axes:
-            print("Error: flip_axes is not available with back to back stem-and-leaf plots.")
+            warn("Error: flip_axes is not available with back to back stem-and-leaf plots.")
+            return None
             return None
         _ = ngram_data(
             df2,
@@ -1438,7 +1439,7 @@ def stem_freq_plot(df, alpha_only=False, asFigure=False, column=None, compact=Tr
             else:
                 alpha_matrix.word.iplot(kind=kind, barmode='stack', asFigure=asFigure, title=title)
         except AttributeError:
-            print('Interactive plot requested, but cufflinks not loaded. Falling back to matplotlib.')
+            warn('Interactive plot requested, but cufflinks not loaded. Falling back to matplotlib.')
             alpha_matrix.word.plot(kind=kind, stacked=True, legend=None, title=title)
     else:
         alpha_matrix.word.plot(kind=kind, stacked=True, legend=None, title=title)
@@ -1699,7 +1700,7 @@ def word_freq_plot(src, alpha_only=False, ascending=False, asFigure=False, caps=
                                                                                                 asFigure=asFigure,
                                                                                                 title=title)
         except AttributeError:
-            print('Interactive plot requested, but cufflinks not loaded. Falling back to matplotlib.')
+            warn('Interactive plot requested, but cufflinks not loaded. Falling back to matplotlib.')
             plt.figure(figsize=(20, 20))
             if top < 0:
                 ax = x.word.value_counts()[top:].plot(kind=kind, title=title)
