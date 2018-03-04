@@ -23,10 +23,13 @@ from math import radians
 import re
 import unicodedata
 from urllib.request import urlopen
+from warnings import warn
 
 import Levenshtein
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -670,130 +673,284 @@ def radar(word, comparisons, ascending=True, display=100, label=True, metric=Non
     return pol_ax
 
 
-def scatter(src1, src2, alpha_only=True, ascending=False, asFigure=False, ax=None, caps=False, compact=True, display=None,
-            interactive=True, jitter=False, label=False, leaf_order=1, leaf_skip=0, log_scale=True,
-            random_state=None, sort_by='alpha', stem_order=1, stem_skip=0, stop_words=None):
+def _scatter3d(df, x, y, z, s, color, ax, label=None,  alpha=0.5):
+    """ _scatter3d
+
+    Helper to make call to scatter3d a little more like the 2d
+
+    :param df: data
+    :param x: x var name
+    :param y: y var name
+    :param z: z var name
+    :param s: size (list or scalar)
+    :param color: color, sequence, or sequence of color
+    :param ax: matplotlib ax
+    :param label: label for legend
+    :param alpha: alpha transparency
+    :return:
+    """
+
+    xs = 0 if x == 0 else df[x]  # logic for projections
+    ys = 0 if y in (0,100) else df[y]
+    zs = 0 if z == 0 else df[z]
+    ax.scatter(xs, ys, zs=zs, alpha=alpha, s=s, color=color, label=label)
+
+
+def scatter(src1, src2, src3=None, alpha=0.5, alpha_only=True, ascending=True, asFigure=False, ax=None, caps=False,
+            compact=True, display=None, fig_xy=None, interactive=True, jitter=False, label=False, leaf_order=1,
+            leaf_skip=0, log_scale=True, normalize=None, percentage=None, project=False, project_only=False,
+            random_state=None, sort_by='alpha', stem_order=1, stem_skip=0, stop_words=None, whole=False):
     """ scatter
+
+    With 2 sources:
+    ---------------
 
     Scatter compares the word frequency of two sources, on each axis. Each data point Z value is the word
     or stem-and-leaf value, while the X axis reflects that word/ngram count in one source and the Y axis
     reflect the same word/ngram count in the other source, in two different colors. If one word/ngram is more common
     on the first source it will be displayed in one color, and if it is more common in the second source, it
     will be displayed in a different color. The values that are the same for both sources will be displayed
-    in a third color (default colors are blue, black and pink. In interactive mode, hovering the data point
+    in a third color (default colors are blue, black and pink.
+
+    With 3 sources:
+    ---------------
+
+    The scatter will compare in 3d the word frequency of three sources, on each axis. Each data point hover value is
+    the word or stem-and-leaf value, while the X axis reflects that word/ngram count in the 1st source, the Y axis
+    reflects the same word/ngram count in the 2nd source, and the Z axis the 3rd source, each in a different color.
+    If one word/ngram is more common on the 1st source it will be displayed in one color, in the 2nd source as a
+    second color and if it is more common in the 3rd source, it will be displayed in a third color.
+    The values that are the same for both sources will be displayed in a 4th color (default colors are
+    blue, black, purple and pink.
+
+    In interactive mode, hovering the data point
     will give the precise counts on each axis along with the word itself, and filtering by category is done
-    by clicking on the category in the legend.
+    by clicking on the category in the legend. Double clicking a category will show only that category.
 
     :param src1: string, filename, url, list, numpy array, time series, pandas or dask dataframe
     :param src2: string, filename, url, list, numpy array, time series, pandas or dask dataframe
+    :param src3: string, filename, url, list, numpy array, time series, pandas or dask dataframe, optional
+    :param alpha:: opacity of the dots, defaults to 50%
     :param alpha_only: only use stems from a-z alphabet (NA on dataframe)
-    :param ascending: stem sorted in ascending order, defaults to True
+    :param ascending: word/stem count sorted in ascending order, defaults to True
     :param asFigure: return plot as plotly figure (for web applications)
     :param ax: matplotlib axes instance, usually from a figure or other plot
     :param caps: bool, True to be case sensitive, defaults to False, recommended for comparisons.(NA on dataframe)
     :param compact: do not display empty stem rows (with no leaves), defaults to False
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param fig_xy: tuple for matplotlib figsize, defaults to (20,20)
     :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
     :param jitter: random noise added to help see multiple data points sharing the same coordinate
     :param label: bool if True display words centered at coordinate
     :param leaf_order: how many leaf digits per data point to display, defaults to 1
     :param leaf_skip: how many leaf characters to skip, defaults to 0 - useful w/shared bigrams: 'wol','wor','woo'
-    :param log_scale: bool if True (default) uses log scale axes
+    :param log_scale: bool if True (default) uses log scale axes (NA in 3d due to open issues with mpl, cufflinks)
+    :param normalize: bool if True normalize frequencies in src2 and src3 relative to src1 length
+    :param percentage: coordinates in percentage of maximum word/ngram count (in non interactive mode)
+    :param project: project src1/src2 and src1/src3 comparisons on X=0 and Z=0 planes
+    :param project_only: only show the projection (NA if project is False)
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param sort_by: sort by 'alpha' (default) or 'count'
     :param stem_order: how many stem characters per data point to display, defaults to 1
     :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
     :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
+    :param whole: for normalized or percentage, use whole integer values (round)
     :return: matplotlib ax, dataframe with categories
     """
-    if isinstance(src1, str):
-        filename1 = src1[:96]
-    else:
-        filename1 = 'data'
 
-    if isinstance(src2, str):
-        filename2 = src2[:96]
-    else:
-        filename2 = 'data'
+    alpha_matrix = []
+    x = []
+    filename = []
+    for src in [src1, src2, src3]:
+        if isinstance(src, str):
+            filename1 = src[:96]
+        else:
+            filename1 = 'data'
+        if src:
+            _, alpha_matrix1, x1 = ngram_data(
+                src,
+                alpha_only=alpha_only,
+                compact=compact,
+                display=display,
+                leaf_order=leaf_order,
+                leaf_skip=leaf_skip,
+                rows_only=False,
+                random_state=random_state,
+                sort_by=sort_by,
+                stem_order=stem_order,
+                stem_skip=stem_skip,
+                stop_words=stop_words,
+                caps=caps)
+            alpha_matrix.append(alpha_matrix1)
+            x.append(x1)
+            filename.append(filename1)
 
-    _, alpha_matrix1, x1 = ngram_data(
-        src1,
-        alpha_only=alpha_only,
-        compact=compact,
-        display=display,
-        leaf_order=leaf_order,
-        leaf_skip=leaf_skip,
-        rows_only=False,
-        random_state=random_state,
-        sort_by=sort_by,
-        stem_order=stem_order,
-        stem_skip=stem_skip,
-        stop_words=stop_words,
-        caps=caps)
-
-    _, alpha_matrix2, x2 = ngram_data(
-        src2,
-        alpha_only=alpha_only,
-        compact=compact,
-        display=display,
-        leaf_order=leaf_order,
-        leaf_skip=leaf_skip,
-        rows_only=False,
-        random_state=random_state,
-        sort_by=sort_by,
-        stem_order=stem_order,
-        stem_skip=stem_skip,
-        stop_words=stop_words,
-        caps=caps)
     if stem_order is None and leaf_order is None:
-        red = pd.concat([x1.word.value_counts().rename('x'), x2.word.value_counts().rename('y')], axis=1)
+        count_by = 'word'
     else:
-        red = pd.concat([x1.ngram.value_counts().rename('x'), x2.ngram.value_counts().rename('y')], axis=1)
-    title='{} vs{}{}'.format(filename1, '<br>' if interactive else '\n', filename2)
+        count_by = 'ngram'
+    xy_ratio = len(x[0]) / len(x[1])
+    if src3:
+        xz_ratio = len(x[0]) / len(x[2])
+        red = pd.concat([x[0][count_by].value_counts().rename('x'),
+                         x[1][count_by].value_counts().rename('y'),
+                         x[2][count_by].value_counts().rename('z')], axis=1)
+        red.fillna(0)
+        if normalize:
+            red.y = red.y * xy_ratio
+            red.z = red.z * xz_ratio
+        max_count = red[['x', 'y', 'z']].abs().max().max()
+    else:
+        red = pd.concat([x[0][count_by].value_counts().rename('x'), x[1][count_by].value_counts().rename('y')], axis=1)
+        if normalize:
+            red.y = red.y * xy_ratio
+        max_count = red[['x', 'y']].abs().max().max()
+
+    title='{} vs{}{}{}'.format(filename[0],
+                               '<br>' if interactive else '\n',
+                               'normalized ' if normalize else '', filename[1])
+    if src3:
+        title = '{} vs {}'.format(title, filename[2])
 
     red.x.fillna(0)
     red.y.fillna(0)
     red.dropna(inplace=True)
-    red['diff'] = red.x - red.y
+    if percentage:
+        red.x = red.x / max_count * 100
+        red.y = red.y / max_count * 100
+        if src3:
+            red.z = red.z / max_count * 100
+
+    if whole:
+        red.x = red.x.round()
+        red.y = red.y.round()
+        if src3:
+            red.z = red.z.round()
+
+    red['diff1'] = red.x - red.y
+    if src3:
+        red['diff2'] = red.x - red.z
     red['categories'] = 'x'
-    red.loc[(red['diff'] < 0), 'categories'] = 'y'
-    red.loc[(red['diff'] == 0), 'categories'] = '='
+    red.loc[(red['diff1'] < 0), 'categories'] = 'y'
+    if src3:
+        red.loc[(red['diff2'] < 0), 'categories'] = 'z'
+        red.loc[(red['diff2'] == 0) & (red['diff1'] == 0), 'categories'] = '='
+        red['hovertext'] = red.index.values + ' ' \
+                           + red.x.astype(str) + ' ' + red.y.astype(str) + ' ' + red.z.astype(str)
+    else:
+        red.loc[(red['diff1'] == 0), 'categories'] = '='
+        red['hovertext'] = red.x.astype(str) + ' ' + red.index.values + ' ' + red.y.astype(str)
+
     red['text'] = red.index.values
-    red['hovertext'] = red.x.astype(str) + ' ' + red.index.values + ' ' + red.y.astype(str)
     red.sort_values(by='categories', inplace=True)
     if jitter:
         # varies slightly the values from their integer counts, but the hover will show the correct count pre jitter
         red['x'] = red['x'] + np.random.uniform(-0.25, 0.25, len(red))
         red['y'] = red['y'] + np.random.uniform(-0.25, 0.25, len(red))
+        if src3:
+            red['z'] = red['z'] + np.random.uniform(-0.25, 0.25, len(red))
+    palette = ['pink', 'blue', 'gray', 'lightpurple']
+    if len(red.categories.dropna().unique()) < 4:
+        palette = palette[1:len(red.categories.dropna().unique())]
+    if fig_xy == None:
+        fig_xy=(10,10)
     if interactive:
         try:
-            ax1 = red.iplot(kind='scatter', colors=['pink', 'blue', 'black'], logx=log_scale, logy=log_scale,
-                           x='x', y='y', categories='categories', title=title,
-                           size=6, text='text' if label else 'hovertext', hoverinfo='text',
-                           mode='markers+text' if label else 'markers', asFigure=asFigure)
+            if src3:
+                ax1 = red.iplot(kind='scatter3d', colors=palette,
+                                x='x', y='y', z='z', categories='categories', title=title, opacity=alpha,
+                                # can't use this until fixed: https://github.com/santosjorge/cufflinks/issues/87
+                                # logx=log_scale, logy=log_scale, logz=log_scale,
+                                size=red.index.str.len(), text='text' if label else 'hovertext', hoverinfo='text',
+                                mode='markers+text' if label else 'markers', asFigure=asFigure)
+            else:
+                ax1 = red.iplot(kind='scatter', colors=palette, logx=log_scale, logy=log_scale, opacity=alpha,
+                                x='x', y='y', categories='categories', title=title,
+                                size=red.index.str.len(), text='text' if label else 'hovertext', hoverinfo='text',
+                                mode='markers+text' if label else 'markers', asFigure=asFigure)
         except AttributeError:
             print('Interactive plot requested, but cufflinks not loaded. Falling back to matplotlib.')
-            ax1 = red[red.categories == 'x'].plot(kind='scatter', x='x', y='y', color='C0')
-            red[red.categories == 'y'].plot(ax=ax, kind='scatter', x='x', y='y', color='k')
-            red[red.categories == '='].plot(ax=ax, kind='scatter', x='x', y='y', color='C3')
-            if log_scale:
-                ax1.set_xscale('log')
-                ax1.set_yscale('log')
-            ax1.set_title(title)
-    else:
-        ax1 = red[red.categories == 'x'].plot(kind='scatter', x='x', y='y', color='C0', ax=ax)
-        red[red.categories == 'y'].plot(ax=ax1, kind='scatter', x='x', y='y', color='k')
-        red[red.categories == '='].plot(ax=ax1, kind='scatter', x='x', y='y', color='C3')
+            interactive=False
+            # in case %matplotlib notebook
+            fig_xy = (10,10)
+
+    if not interactive:
+        if ax is None:
+            if src3:
+                fig = plt.figure(figsize=fig_xy)
+                ax = fig.add_subplot(111, projection='3d')
+
+                if not project_only:
+                    _scatter3d(red[red.categories == 'x'], x='x', y='y', z='z', alpha=alpha,
+                               s=red[red.categories == 'x'].index.str.len()*10, ax=ax, color='C0', label='x')
+                    _scatter3d(red[red.categories == 'y'], x='x', y='y', z='z', alpha=alpha,
+                               s=red[red.categories == 'y'].index.str.len()*10, ax=ax, color='k', label='y')
+                    _scatter3d(red[red.categories == 'z'], x='x', y='y', z='z', alpha=alpha,
+                               s=red[red.categories == 'z'].index.str.len()*10, ax=ax, color='C4', label='z')
+
+                    if len(palette) == 4:
+                        # we do have equal values
+                        _scatter3d(red[red.categories == '='], x='x', y='y', z='z', alpha=alpha,
+                                   s=red[red.categories == '='].index.str.len()*10, ax=ax, color='C3', label='=')
+                if project:
+                    _scatter3d(red[red.categories == 'x'], x='x', y='y', z=0, alpha=alpha,
+                               s=red[red.categories == 'x'].index.str.len() * 10, ax=ax, color='C0')
+                    _scatter3d(red[red.categories == 'y'], x='x', y='y', z=0, alpha=alpha,
+                               s=red[red.categories == 'y'].index.str.len() * 10, ax=ax, color='k')
+
+                    _scatter3d(red[red.categories == 'y'], x=0, y='y', z='z', alpha=alpha,
+                               s=red[red.categories == 'y'].index.str.len() * 10, ax=ax, color='k')
+                    _scatter3d(red[red.categories == 'z'], x=0, y='y', z='z', alpha=alpha,
+                               s=red[red.categories == 'z'].index.str.len() * 10, ax=ax, color='C4')
+
+
+            else:
+                fig, ax = plt.subplots(1, 1, figsize=fig_xy)
+                if label:
+                    alpha=0.05
+                red[red.categories == 'x'].plot(kind='scatter', x='x', y='y', color='C0', ax=ax, label='x',
+                                                alpha=alpha, s=red[red.categories == 'x'].index.str.len() * 10)
+                red[red.categories == 'y'].plot(ax=ax, kind='scatter', x='x', y='y', color='k', label='y',
+                                                alpha=alpha, s=red[red.categories == 'y'].index.str.len() * 10)
+                if len(palette) == 3:
+                    red[red.categories == '='].plot(ax=ax, kind='scatter', x='x', y='y', color='C3', label='=',
+                                                    alpha=alpha, s=red[red.categories == '='].index.str.len() * 10)
+
         if log_scale:
-            ax1.set_xscale('log')
-            ax1.set_yscale('log')
-        ax1.set_title(title)
-    return ax1, red.drop(['hovertext'], axis=1)
+            if src3:
+                warn("Log_scale is not working currently due to an issue in {}.".format(
+                    'cufflinks' if interactive else 'matplotlib'))
+                # matplotlib bug: https://github.com/matplotlib/matplotlib/issues/209
+                # cufflinks bug: https://github.com/santosjorge/cufflinks/issues/87
+            else:
+                ax.set_xscale('log')
+                ax.set_yscale('log')
+        if label:
+            if log_scale:
+              warn("Labels do not currently work in log scale due to an incompatibility in matplotlib."
+                    " Set log_scale=False to display text labels.")
+            elif src3:
+                for tx, ty, tz, tword in red[['x', 'y', 'z', 'text']].dropna().values:
+                    ax.text(tx, ty, tword, zs=tz, va='center', ha='center')
+            else:
+                for tx, ty, tword in red[['x', 'y', 'text']].dropna().values:
+                    if tx < 5 and ty < 5:
+                        if np.random.random() > 0.90:
+                            # very dense area usually, show roughly 15%, randomly
+                            ax.text(tx, ty, tword, va='center', ha='center')
+                    else:
+                        ax.text(tx, ty, tword, va='center', ha='center')
+        ax.set_title(title)
+        ax.legend(loc='best')
+        if not ascending:
+            ax.invert_xaxis()
+    return ax, red.drop(['hovertext'], axis=1)
 
 
-def stem_scatter(src1, src2, alpha_only=True, ascending=False, asFigure=False, ax=None, caps=False, compact=True,
-                 display=None, interactive=True, jitter=False, label=False, leaf_order=1, leaf_skip=0, log_scale=True,
-                 random_state=None, sort_by='alpha', stem_order=1, stem_skip=0, stop_words=None):
+def stem_scatter(src1, src2, src3=None, alpha=0.5, alpha_only=True, ascending=True, asFigure=False, ax=None, caps=False,
+                 compact=True, display=None, fig_xy=None, interactive=True, jitter=False, label=False, leaf_order=1,
+                 leaf_skip=0, log_scale=True, normalize=None, percentage=None, project=False, project_only=False,
+                 random_state=None, sort_by='alpha', stem_order=1, stem_skip=0, stop_words=None, whole=False):
     """ stem_scatter
 
     stem_scatter compares the word frequency of two sources, on each axis. Each data point Z value is the word
@@ -807,6 +964,8 @@ def stem_scatter(src1, src2, alpha_only=True, ascending=False, asFigure=False, a
 
     :param src1: string, filename, url, list, numpy array, time series, pandas or dask dataframe
     :param src2: string, filename, url, list, numpy array, time series, pandas or dask dataframe
+    :param src3: string, filename, url, list, numpy array, time series, pandas or dask dataframe, optional
+    :param alpha:: opacity of the dots, defaults to 50%
     :param alpha_only: only use stems from a-z alphabet (NA on dataframe)
     :param ascending: stem sorted in ascending order, defaults to True
     :param asFigure: return plot as plotly figure (for web applications)
@@ -814,23 +973,29 @@ def stem_scatter(src1, src2, alpha_only=True, ascending=False, asFigure=False, a
     :param caps: bool, True to be case sensitive, defaults to False, recommended for comparisons.(NA on dataframe)
     :param compact: do not display empty stem rows (with no leaves), defaults to False
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param fig_xy:  tuple for matplotlib figsize, defaults to (20,20)
     :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
     :param jitter: random noise added to help see multiple data points sharing the same coordinate
     :param label: bool if True display words centered at coordinate
     :param leaf_order: how many leaf digits per data point to display, defaults to 1
     :param leaf_skip: how many leaf characters to skip, defaults to 0 - useful w/shared bigrams: 'wol','wor','woo'
-    :param log_scale: bool if True uses log scale axes
+    :param log_scale: bool if True (default) uses log scale axes (NA in 3d due to open issues with mpl, cufflinks)
+    :param normalize: bool if True normalize frequencies in src2 and src3 relative to src1 length
+    :param percentage: coordinates in percentage of maximum word/ngram count
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param sort_by: sort by 'alpha' (default) or 'count'
     :param stem_order: how many stem characters per data point to display, defaults to 1
     :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
     :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
+    :param whole: for normalized or percentage, use whole integer values (round)
     :return: matplotlib polar ax, dataframe
     """
-    return scatter(src1=src1, src2=src2, alpha_only=alpha_only, asFigure=asFigure, ascending=ascending, ax=ax,
-                   caps=caps, compact=compact, display=display, interactive=interactive, jitter=jitter, label=label,
-                   leaf_order=leaf_order, leaf_skip=leaf_skip, log_scale=log_scale, random_state=random_state,
-                   sort_by=sort_by, stem_order=stem_order, stem_skip=stem_skip,stop_words=stop_words)
+    return scatter(src1=src1, src2=src2, src3=src3, alpha=alpha, alpha_only=alpha_only, asFigure=asFigure,
+                   ascending=ascending, ax=ax, caps=caps, compact=compact, display=display, fig_xy=fig_xy,
+                   interactive=interactive, jitter=jitter, label=label, leaf_order=leaf_order, leaf_skip=leaf_skip,
+                   log_scale=log_scale, normalize=normalize, percentage=percentage, project=project,
+                   project_only=project_only, random_state=random_state, sort_by=sort_by, stem_order=stem_order,
+                   stem_skip=stem_skip,stop_words=stop_words, whole=whole)
 
 
 def stem_text(df, aggr=False, alpha_only=True, ascending=True, binary=False, break_on=None, caps=True,
@@ -1469,8 +1634,8 @@ def sunburst(words, alpha_only=True, ascending=False, caps=False, compact=True, 
 
 
 # noinspection PyPep8Naming,PyTypeChecker,PyTypeChecker
-def word_freq_plot(src, ascending=False, alpha_only=False, asFigure=False, caps=False, display=None, interactive=True,  # NOQA
-                   kind='barh', random_state=None, sort_by='count', stop_words=None, top=100):
+def word_freq_plot(src, alpha_only=False, ascending=False, asFigure=False, caps=False, display=None,  # NOQA
+                   interactive=True, kind='barh', random_state=None, sort_by='count', stop_words=None, top=100):
     """ word frequency bar chart.
 
     This function creates a classical word frequency bar chart.
@@ -1580,9 +1745,10 @@ def word_radar(word, comparisons, ascending=True, display=100, label=True, metri
                  min_distance=min_distance, max_distance=max_distance, random_state=random_state, sort_by=sort_by)
 
 
-def word_scatter(src1, src2, alpha_only=True, ascending=False, asFigure=False, ax=None, caps=False, compact=True,
-                 display=None, interactive=True, jitter=False, label=False, leaf_order=None, leaf_skip=0,
-                 log_scale=True, random_state=None, sort_by='count', stem_order=None, stem_skip=0, stop_words=None):
+def word_scatter(src1, src2, src3=None, alpha=0.5, alpha_only=True, ascending=True, asFigure=False, ax=None, caps=False,
+                 compact=True, display=None, fig_xy=None, interactive=True, jitter=False, label=False,
+                 leaf_order=None, leaf_skip=0, log_scale=True, normalize=None, percentage=None, random_state=None,
+                 sort_by='alpha', stem_order=None, stem_skip=0, stop_words=None, whole=False):
     """ word_scatter
 
     Scatter compares the word frequency of two sources, on each axis. Each data point Z value is the word
@@ -1596,6 +1762,8 @@ def word_scatter(src1, src2, alpha_only=True, ascending=False, asFigure=False, a
 
     :param src1: string, filename, url, list, numpy array, time series, pandas or dask dataframe
     :param src2: string, filename, url, list, numpy array, time series, pandas or dask dataframe
+    :param src3: string, filename, url, list, numpy array, time series, pandas or dask dataframe, optional
+    :param alpha: opacity of the bars, median and outliers, defaults to 10%
     :param alpha_only: only use stems from a-z alphabet (NA on dataframe)
     :param ascending: stem sorted in ascending order, defaults to True
     :param asFigure: return plot as plotly figure (for web applications)
@@ -1603,6 +1771,7 @@ def word_scatter(src1, src2, alpha_only=True, ascending=False, asFigure=False, a
     :param caps: bool, True to be case sensitive, defaults to False, recommended for comparisons.(NA on dataframe)
     :param compact: do not display empty stem rows (with no leaves), defaults to False
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param fig_xy:  tuple for matplotlib figsize, defaults to (20,20)
     :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
     :param jitter: random noise added to help see multiple data points sharing the same coordinate
     :param label: bool if True display words centered at coordinate
@@ -1614,12 +1783,14 @@ def word_scatter(src1, src2, alpha_only=True, ascending=False, asFigure=False, a
     :param stem_order: how many stem characters per data point to display, defaults to 1
     :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
     :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
+    :param whole: for normalized or percentage, use whole integer values (round)
     :return: matplotlib polar ax, dataframe
     """
-    return scatter(src1=src1, src2=src2, alpha_only=alpha_only, ascending=ascending, ax=ax, caps=caps,
-                   compact=compact, display=display, interactive=interactive, jitter=jitter, label=label,
-                   leaf_order=leaf_order, leaf_skip=leaf_skip, log_scale=log_scale, random_state=random_state,
-                   sort_by=sort_by, stem_order=stem_order, stem_skip=stem_skip,stop_words=stop_words)
+    return scatter(src1=src1, src2=src2, src3=src3, alpha=alpha, alpha_only=alpha_only, asFigure=asFigure,
+                   ascending=ascending, ax=ax, caps=caps, compact=compact, display=display, fig_xy=fig_xy,
+                   interactive=interactive, jitter=jitter, label=label, leaf_order=leaf_order, leaf_skip=leaf_skip,
+                   log_scale=log_scale, normalize=normalize, percentage=percentage, random_state=random_state,
+                   sort_by=sort_by, stem_order=stem_order, stem_skip=stem_skip,stop_words=stop_words, whole=whole)
 
 
 def word_sunburst(words, alpha_only=True, ascending=False, caps=False, compact=True, display=None, hole=True,
