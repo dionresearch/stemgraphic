@@ -366,27 +366,6 @@ def matrix_difference(mat1, mat2, thresh=0, ord=None):
     return diff, norm, ratio
 
 
-def matrix_distance(mat1, mat2, thresh=0, ord=None):
-    """ matrix_difference
-
-    :param mat1: first heatmap dataframe
-    :param mat2: second heatmap dataframe
-    :param thresh: : absolute value minimum count difference for a difference heatmap element to be visible
-    :return: difference matrix, norm and ratio of the sum of the first matrix over the second
-    """
-    tot1 = mat1.sum().sum()
-    tot2 = mat2.sum().sum()
-    ratio = tot1 / tot2
-
-    diff = mat1.fillna(-999999).subtract(mat2.fillna(0) * ratio, fill_value=0).reindex_like(mat1).astype(int)
-    diff = diff.replace(-999999, np.NaN)
-    diff[diff < -999999] = diff[diff < -999999] + 999999
-    diff[(diff >= 0) & (diff <= thresh)] = np.NaN
-    diff[(diff < 0) & (diff >= -thresh)] = np.NaN
-    norm = np.linalg.norm(diff.fillna(0), ord=ord)
-    return diff, norm, ratio
-
-
 def ngram_data(df, alpha_only=False, ascending=True, binary=False, break_on=None, caps=False,
                char_filter=None, column=None, compact=False, display=750, leaf_order=1, leaf_skip=0,
                persistence=None, random_state=None, remove_accents=False, reverse=False,
