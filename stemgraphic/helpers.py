@@ -3,7 +3,10 @@
 Helper functions for stemgraphic.
 """
 import matplotlib.tri as tri
+import numpy as np
 import pandas as pd
+import pickle
+from warnings import warn
 try:
     import dask.dataframe as dd
 except ImportError:
@@ -117,6 +120,38 @@ def min_max_count(x, column=0):
     return omin, omax, int(count)
 
 
+def npy_save(path, array):
+    if path[-4:] != '.npy':
+        path += '.npy'
+    with open(path, 'wb+') as f:
+        np.save(f, array, allow_pickle=False)
+    return path
+
+
+def npy_load(path):
+    if path[-4:] != '.npy':
+        warn("Not a numpy NPY file.")
+        return None
+    return np.load(path)
+
+
+def pkl_save(path, array):
+    if path[-4:] != '.pkl':
+        path += '.pkl'
+    with open(path, 'wb+') as f:
+        pickle.dump(array, f)
+    return path
+
+
+def pkl_load(path):
+    if path[-4:] != '.pkl':
+        warn("Not a PKL file.")
+        return None
+    with open(path, 'rb') as f:
+        matrix = pickle.load(f)
+    return matrix
+
+
 def percentile(data, alpha):
     """ percentile
 
@@ -153,6 +188,11 @@ QUOTE = '\''
 #: Double straight quote mark
 DOUBLE_QUOTE = '\"'
 
+EMPTY = b' '
+
+# for typesetting overlap
+b'\xd6\xb1'
+
 #: Characters to filter. Does a relatively good job on a majority of texts
 #: '- ' and '–' is to skip quotes in many plays and dialogues in books, especially French.
 CHAR_FILTER = [
@@ -182,8 +222,12 @@ NON_ALPHA = [
     '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
     '!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
     ';',
-    QUOTE, DOUBLE_QUOTE, APOSTROPHE,
+    QUOTE, DOUBLE_QUOTE, APOSTROPHE, EMPTY,
     '?',
     '¡', '¿',  # spanish
-    '«', '»'
+    '«', '»',
+    '“', '”',
+    '-', '—',
+
 ]
+
