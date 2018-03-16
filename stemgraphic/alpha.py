@@ -80,8 +80,10 @@ def heatmap(src, alpha_only=False, annotate=False, asFigure=False, ax=None, caps
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
     :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
     :param leaf_order: how many leaf characters per data point to display, defaults to 1
+    :param leaf_skip: how many leaf characters to skip, defaults to 0 - useful w/shared bigrams: 'wol','wor','woo'
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param stem_order: how many stem characters per data point to display, defaults to 1
+    :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
     :param stop_words:stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
     :return:
     """
@@ -125,7 +127,7 @@ def heatmap(src, alpha_only=False, annotate=False, asFigure=False, ax=None, caps
 # noinspection PyUnboundLocalVariable
 def heatmap_grid(src1, src2, src3=None, src4=None, alpha_only=True, annot=False, caps=False, center=0, cmap=None,
                  display=1000, leaf_order=1, leaf_skip=0, random_state=None, reverse=False, robust=False, stem_order=1,
-                 stop_words=None, threshold=0):
+                 stem_skip=0, stop_words=None, threshold=0):
     """ heatmap_grid.
 
     With stem_graphic, it is possible to directly compare two different sources. In the case of a heatmap,
@@ -158,6 +160,7 @@ def heatmap_grid(src1, src2, src3=None, src4=None, alpha_only=True, annot=False,
     :param robust: reduce effect of outliers on difference heatmap
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param stem_order: how many stem characters per data point to display, defaults to 1
+    :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
     :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
     :param threshold: absolute value minimum count difference for a difference heatmap element to be visible
     :return:
