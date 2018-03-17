@@ -188,10 +188,11 @@ QUOTE = '\''
 #: Double straight quote mark
 DOUBLE_QUOTE = '\"'
 
+#: empty
 EMPTY = b' '
 
-# for typesetting overlap
-b'\xd6\xb1'
+#: for typesetting overlap
+OVER = b'\xd6\xb1'
 
 #: Characters to filter. Does a relatively good job on a majority of texts
 #: '- ' and '–' is to skip quotes in many plays and dialogues in books, especially French.
@@ -222,7 +223,7 @@ NON_ALPHA = [
     '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
     '!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
     ';',
-    QUOTE, DOUBLE_QUOTE, APOSTROPHE, EMPTY,
+    QUOTE, DOUBLE_QUOTE, APOSTROPHE, EMPTY, OVER,
     '?',
     '¡', '¿',  # spanish
     '«', '»',

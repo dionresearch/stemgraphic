@@ -84,7 +84,7 @@ def heatmap(src, alpha_only=False, annotate=False, asFigure=False, ax=None, caps
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param stem_order: how many stem characters per data point to display, defaults to 1
     :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
-    :param stop_words:stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
+    :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
     :return:
     """
 
@@ -382,7 +382,6 @@ def ngram_data(df, alpha_only=False, ascending=True, binary=False, break_on=None
     the ngram (stem + leaf) - the index is the 'token' position in the original source:
 
         word    stem 	leaf 	ngram
-        -----------------------------
     12 	salut   s       a       sa
     13 	chéri   c       h       ch
 
@@ -710,7 +709,6 @@ def scatter(src1, src2, src3=None, alpha=0.5, alpha_only=True, ascending=True, a
     """ scatter
 
     With 2 sources:
-    ---------------
 
     Scatter compares the word frequency of two sources, on each axis. Each data point Z value is the word
     or stem-and-leaf value, while the X axis reflects that word/ngram count in one source and the Y axis
@@ -720,7 +718,6 @@ def scatter(src1, src2, src3=None, alpha=0.5, alpha_only=True, ascending=True, a
     in a third color (default colors are blue, black and pink.
 
     With 3 sources:
-    ---------------
 
     The scatter will compare in 3d the word frequency of three sources, on each axis. Each data point hover value is
     the word or stem-and-leaf value, while the X axis reflects that word/ngram count in the 1st source, the Y axis
