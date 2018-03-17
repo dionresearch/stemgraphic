@@ -64,7 +64,8 @@ def add_missing_letters(mat, stem_order, leaf_order, letters=None):
 
 # noinspection PyPep8Naming
 def heatmap(src, alpha_only=False, annotate=False, asFigure=False, ax=None, caps=False, compact=True,  # NOQA
-            display=None, interactive=True, leaf_order=1, random_state=None, stem_order=1, stop_words=None):
+            display=None, interactive=True, leaf_order=1, leaf_skip=0, random_state=None, stem_order=1,
+            stem_skip=0, stop_words=None):
     """ The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
      they are left in their respective columns. Row 'a' and Column 'b' would have the count of words starting
      with 'ab'. The heatmap is useful to look at patterns. For distribution, stem\_graphic is better suited.
@@ -79,9 +80,11 @@ def heatmap(src, alpha_only=False, annotate=False, asFigure=False, ax=None, caps
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
     :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
     :param leaf_order: how many leaf characters per data point to display, defaults to 1
+    :param leaf_skip: how many leaf characters to skip, defaults to 0 - useful w/shared bigrams: 'wol','wor','woo'
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param stem_order: how many stem characters per data point to display, defaults to 1
-    :param stop_words:stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
+    :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
+    :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
     :return:
     """
 
@@ -92,9 +95,11 @@ def heatmap(src, alpha_only=False, annotate=False, asFigure=False, ax=None, caps
         compact=compact,
         display=display,
         leaf_order=leaf_order,
+        leaf_skip=leaf_skip,
         rows_only=False,
         random_state=random_state,
         stem_order=stem_order,
+        stem_skip=stem_skip,
         stop_words=stop_words
     )
     if not compact:
@@ -121,8 +126,8 @@ def heatmap(src, alpha_only=False, annotate=False, asFigure=False, ax=None, caps
 
 # noinspection PyUnboundLocalVariable
 def heatmap_grid(src1, src2, src3=None, src4=None, alpha_only=True, annot=False, caps=False, center=0, cmap=None,
-                 display=1000, leaf_order=1, random_state=None, robust=False, stem_order=1,
-                 stop_words=None, threshold=0):
+                 display=1000, leaf_order=1, leaf_skip=0, random_state=None, reverse=False, robust=False, stem_order=1,
+                 stem_skip=0, stop_words=None, threshold=0):
     """ heatmap_grid.
 
     With stem_graphic, it is possible to directly compare two different sources. In the case of a heatmap,
@@ -151,34 +156,36 @@ def heatmap_grid(src1, src2, src3=None, src4=None, alpha_only=True, annot=False,
     :param cmap: color map for difference heatmap or None (default) to use the builtin red / blue divergent map
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
     :param leaf_order: how many leaf characters per data point to display, defaults to 1
+    :param leaf_skip: how many leaf characters to skip, defaults to 0 - useful w/shared bigrams: 'wol','wor','woo'
     :param robust: reduce effect of outliers on difference heatmap
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param stem_order: how many stem characters per data point to display, defaults to 1
+    :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
     :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
     :param threshold: absolute value minimum count difference for a difference heatmap element to be visible
     :return:
     """
     res1, alpha1, x1 = ngram_data(src1, alpha_only=alpha_only, display=display, stem_order=stem_order,
-                                  leaf_order=leaf_order, random_state=random_state, rows_only=False,
-                                  stop_words=stop_words,
+                                  leaf_order=leaf_order, leaf_skip=leaf_skip, random_state=random_state, rows_only=False,
+                                  stop_words=stop_words, reverse=reverse,
                                   caps=caps)
     res2, alpha2, x2 = ngram_data(src2, alpha_only=alpha_only, display=display, stem_order=stem_order,
-                                  leaf_order=leaf_order, random_state=random_state, rows_only=False,
-                                  stop_words=stop_words,
+                                  leaf_order=leaf_order, leaf_skip=leaf_skip, random_state=random_state, rows_only=False,
+                                  stop_words=stop_words, reverse=reverse,
                                   caps=caps)
     alpha1 = add_missing_letters(alpha1.word, stem_order, leaf_order)
     alpha2 = add_missing_letters(alpha2.word, stem_order, leaf_order)
 
     if src3 is not None:
         res3, alpha3, x3 = ngram_data(src3, alpha_only=alpha_only, display=display, stem_order=stem_order,
-                                      leaf_order=leaf_order, random_state=random_state, rows_only=False,
-                                      stop_words=stop_words, caps=caps)
+                                      leaf_order=leaf_order, leaf_skip=leaf_skip, random_state=random_state, rows_only=False,
+                                      stop_words=stop_words, caps=caps, reverse=reverse)
         alpha3 = add_missing_letters(alpha3.word, stem_order, leaf_order)
 
     if src4 is not None:
         res4, alpha4, x4 = ngram_data(src4, alpha_only=alpha_only, display=display, stem_order=stem_order,
-                                      leaf_order=leaf_order, random_state=random_state, rows_only=False,
-                                      stop_words=stop_words, caps=caps)
+                                      leaf_order=leaf_order, leaf_skip=leaf_skip, random_state=random_state, rows_only=False,
+                                      stop_words=stop_words, caps=caps, reverse=reverse)
         alpha4 = add_missing_letters(alpha4.word, stem_order, leaf_order)
 
     diff1, norm1, ratio1 = matrix_difference(alpha1, alpha2, thresh=threshold)
@@ -325,7 +332,7 @@ def heatmap_grid(src1, src2, src3=None, src4=None, alpha_only=True, annot=False,
                  transform=ax8.transAxes)
         # noinspection PyUnboundLocalVariable
         ax9.set_title(src4)
-        sns.heatmap(alpha3, annot=annot, ax=ax9, vmin=mvmin, vmax=mvmax)
+        sns.heatmap(alpha4, annot=annot, ax=ax9, vmin=mvmin, vmax=mvmax)
 
         # noinspection PyUnboundLocalVariable,PyUnboundLocalVariable
         ax8.set_title('changes ({})'.format(norm5 / ratio5))
@@ -341,7 +348,7 @@ def heatmap_grid(src1, src2, src3=None, src4=None, alpha_only=True, annot=False,
     return fig
 
 
-def matrix_difference(mat1, mat2, thresh=0):
+def matrix_difference(mat1, mat2, thresh=0, ord=None):
     """ matrix_difference
 
     :param mat1: first heatmap dataframe
@@ -358,11 +365,11 @@ def matrix_difference(mat1, mat2, thresh=0):
     diff[diff < -999999] = diff[diff < -999999] + 999999
     diff[(diff >= 0) & (diff <= thresh)] = np.NaN
     diff[(diff < 0) & (diff >= -thresh)] = np.NaN
-    norm = np.linalg.norm(diff.fillna(0))
+    norm = np.linalg.norm(diff.fillna(0), ord=ord)
     return diff, norm, ratio
 
 
-def ngram_data(df, alpha_only=False, ascending=True, binary=False, break_on=None, caps=True,
+def ngram_data(df, alpha_only=False, ascending=True, binary=False, break_on=None, caps=False,
                char_filter=None, column=None, compact=False, display=750, leaf_order=1, leaf_skip=0,
                persistence=None, random_state=None, remove_accents=False, reverse=False,
                rows_only=True, sort_by='len', stem_order=1, stem_skip=0, stop_words=None):
@@ -375,7 +382,6 @@ def ngram_data(df, alpha_only=False, ascending=True, binary=False, break_on=None
     the ngram (stem + leaf) - the index is the 'token' position in the original source:
 
         word    stem 	leaf 	ngram
-        -----------------------------
     12 	salut   s       a       sa
     13 	chéri   c       h       ch
 
@@ -703,7 +709,6 @@ def scatter(src1, src2, src3=None, alpha=0.5, alpha_only=True, ascending=True, a
     """ scatter
 
     With 2 sources:
-    ---------------
 
     Scatter compares the word frequency of two sources, on each axis. Each data point Z value is the word
     or stem-and-leaf value, while the X axis reflects that word/ngram count in one source and the Y axis
@@ -713,7 +718,6 @@ def scatter(src1, src2, src3=None, alpha=0.5, alpha_only=True, ascending=True, a
     in a third color (default colors are blue, black and pink.
 
     With 3 sources:
-    ---------------
 
     The scatter will compare in 3d the word frequency of three sources, on each axis. Each data point hover value is
     the word or stem-and-leaf value, while the X axis reflects that word/ngram count in the 1st source, the Y axis
@@ -1095,7 +1099,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
                  bar_outline=None, break_on=None, caps=True, column=None, combined=None, compact=False,
                  delimiter_color='C3', display=750, figure_only=True, flip_axes=False,
                  font_kw=None, leaf_color='k', leaf_order=1, leaf_skip=0, legend_pos='best',
-                 median_color='magenta', mirror=False, persistence=None, primary_kw=None,
+                 median_color='C4', mirror=False, persistence=None, primary_kw=None,
                  random_state=None, remove_accents=False, reverse=False, secondary=False,
                  show_stem=True, sort_by='len', stop_words=None, stem_order=1, stem_skip=0,
                  title=None, trim_blank=False, underline_color=None):
@@ -1210,7 +1214,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
         if flip_axes:
             warn("Error: flip_axes is not available with back to back stem-and-leaf plots.")
             return None
-            return None
+
         _ = ngram_data(
             df2,
             alpha_only=alpha_only,
