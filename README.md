@@ -40,6 +40,33 @@ or from this cloned repository, in the package root:
 
 # Latest changes
 
+## Version 0.6.0
+
+Version bump to 0.6 due to order of params changing. Shouldn't affect using named args
+
+Major code change and expansion for num.stem_graphic including:
+- back-to-back stem-and-leaf plots
+- allows comparison of very skewed data
+- bug fix (rounding issue) due to python precision
+- better stem handling 
+- alpha down to 10% for bars
+- median alpha can be specified
+- stems can be hidden
+- added title option, besides the legend
+
+Other changes:
+- More notebook examples
+- added leaf_skip, stem_skip to a few functions missing them
+- heatmap_grid bugfix
+- added reverse to a few functions missing it
+- improved documentation
+- matrix_difference ord param added added
+- ngram_data now properly defaults to case insensitive
+- switched magenta to 'C4' - compatible with mpl styles now
+- functions to read/write .npy and .pkl files
+- more unicode typographical glyphs added to the list of non alpha
+
+
 ## Version 0.5.3
 
 - scatter 3d support
