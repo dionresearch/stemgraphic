@@ -1095,8 +1095,8 @@ def stem_text(df, aggr=False, alpha_only=True, ascending=True, binary=False, bre
 
 
 # noinspection PyTypeChecker
-def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, ascending=False, ax=None, bar_color='C0',
-                 bar_outline=None, break_on=None, caps=True, column=None, combined=None, compact=False,
+def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, ascending=False, ax=None, ax2=None,
+                 bar_color='C0', bar_outline=None, break_on=None, caps=True, column=None, combined=None, compact=False,
                  delimiter_color='C3', display=750, figure_only=True, flip_axes=False,
                  font_kw=None, leaf_color='k', leaf_order=1, leaf_skip=0, legend_pos='best',
                  median_color='C4', mirror=False, persistence=None, primary_kw=None,
@@ -1121,6 +1121,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
     :param alpha_only: only use stems from a-z alphabet (NA on dataframe)
     :param ascending: stem sorted in ascending order, defaults to True
     :param ax: matplotlib axes instance, usually from a figure or other plot
+    :param ax2: matplotlib axes instance, usually from a figure or other plot for back to back
     :param bar_color: the fill color of the bar representing the leaves
     :param bar_outline: the outline color of the bar representing the leaves
     :param break_on: force a break of the leaves at that letter, the rest of the leaves will appear on the next line
@@ -1210,7 +1211,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
     else:
         max_leaves = rows.str.len().max()
 
-    if df2:
+    if df2 is not None:
         if flip_axes:
             warn("Error: flip_axes is not available with back to back stem-and-leaf plots.")
             return None
@@ -1235,12 +1236,12 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
 
     fig = None
     if flip_axes:
-        height = max_leaves / 8 + 3
+        height = max_leaves + 3
         if height < 20:
             height = 20
         width = len(rows) + 3
     else:
-        width = max_leaves / 8 + 3
+        width = max_leaves / (max_leaves/40)
         if width < 20:
             width = 20
         # if df2:
@@ -1254,18 +1255,24 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
 
     aggr_offset = -0.5
     aggr_line_offset = 1
-    if df2:
+    if df2 is not None:
         # values = res.index
         # combined = sorted(list(set(values.append(res2.index))))
         aggr_offset = -3.7
         aggr_line_offset = 0.2
-        fig, (ax1, ax) = plt.subplots(1, 2, sharey=True, figsize=((width / 4), (height / 4)))
-        # ax1 = fig.add_subplot(111, sharey=True)
+        if ax2 is None:
+            fig, (ax1, ax) = plt.subplots(1, 2, sharey=True, figsize=((width / 4), (height / 4)))
+        else:
+            ax1 = ax2
+            ax1.set_xlim((-1, width + 0.05))
+            ax1.set_ylim((-1, height + 0.05))
+
         plt.box(on=None)
         ax1.axes.get_yaxis().set_visible(False)
         ax1.axes.get_xaxis().set_visible(False)
-        ax1.set_xlim(-1, width + 0.05)
-        ax1.set_ylim(-1, height + 0.05)
+        if not ax2:
+            ax1.set_xlim(-1, width + 0.05)
+            ax1.set_ylim(-1, height + 0.05)
         _ = stem_graphic(df2,  # NOQA
                          ax=ax1, aggregation=mirror and aggregation, alpha_only=alpha_only, ascending=ascending,
                          break_on=break_on, column=column, combined=combined, display=display, flip_axes=False,
@@ -1273,16 +1280,20 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
                          show_stem=True, stop_words=stop_words)
 
     if ax is None:
-        fig = plt.figure(figsize=((width / 4), (height / 2)))
+        fig = plt.figure(figsize=((width / 4), (height / 4)))
         ax = fig.add_axes((0.05, 0.05, 0.9, 0.9),
                           aspect='equal', frameon=False,
                           xlim=(-1, width + 0.05),
                           ylim=(-1, height + 0.05))
+    else:
+        ax.set_xlim((-1, width + 0.05))
+        ax.set_ylim((-1, height + 0.05))
+        fig = ax.get_figure()
     plt.box(on=None)
     ax.axis('off')
     ax.axes.get_yaxis().set_visible(False)
     ax.axes.get_xaxis().set_visible(False)
-    if df2 or secondary:
+    if df2 is not None or secondary:
         title_offset = -2 if mirror else 4
     else:
         title_offset = 0 if mirror else 2
@@ -1334,7 +1345,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
                     bbox={'facecolor': bar_color, 'edgecolor': bar_outline, 'alpha': alpha, 'pad': pad})
 
         else:
-            if aggregation and not (df2 and mirror):
+            if aggregation and not (df2 is not None and mirror):
                 ax.text(aggr_offset, cnt + 0.5, tot_display, fontsize=aggr_fontsize, color=aggr_fontcolor,
                         bbox={'facecolor': aggr_facecolor, 'alpha': alpha, 'pad': pad} if aggr_facecolor is not None
                         else {'alpha': 0},
@@ -1344,7 +1355,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
                 stem_offset = 2.2
                 if secondary and not mirror:
                     stem_offset = -8
-                elif df2 and mirror:
+                elif df2 is not None and mirror:
                     stem_offset = 2.1
                 ax.text(stem_offset, cnt + 0.5, stem, fontweight=stem_fontweight, color=stem_fontcolor,
                         family='monospace',
@@ -1366,7 +1377,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
             ax.hlines(1, min_s, min_s + 1 + cnt, color=delimiter_color, alpha=0.7)
 
     else:
-        if aggregation and not (df2 and mirror):
+        if aggregation and not (df2 is not None and mirror):
             # noinspection PyUnboundLocalVariable
             ax.vlines(aggr_line_offset, 0, 1 + cnt, color=delimiter_color, alpha=0.7)
         if show_stem:
@@ -1375,6 +1386,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, alpha_only=True, asc
         ax.plot(0, height)
     else:
         ax.plot(width, 0)
+    fig.tight_layout()
     if figure_only:
         return fig, ax
     else:
