@@ -12,11 +12,191 @@ import seaborn as sns
 from warnings import warn
 
 from .helpers import key_calc, legend, min_max_count, dd
-from .text import stem_data
+from .text import quantize, stem_data
+
+
+def density_plot(df, var=None, ax=None, bins=None, box=None, density=True, density_fill=True, display=1000,
+                 fig_only=True, fit=None, hist=None, hues=None, hue_labels=None, jitter=None, kind=None,
+                 leaf_order=1, legend=True, limit_var=False, norm_hist=None, random_state=None, rug=None, scale=None,
+                 singular=True, strip=None, swarm=None, title=None, violin=None,
+                 x_min=0, x_max=None, y_axis_label=True):
+    """ density_plot.
+
+    Various density and distribution plots conveniently packaged into one function. Density plot normally forces
+    tails at each end which might go beyond the data. To force min/max to be driven by the data, use limit_var.
+    To specify min and max use x_min and x_max instead. Nota Bene: defaults to _decimation_ and _quantization_ mode.
+
+    See density_plot notebook for examples of the different combinations of plots.
+
+    Why this instead of seaborn:
+
+    Stem-and-leaf plots naturally quantize data. The amount of loss is based on scale and leaf_order and on the data
+    itself. This function which wraps several seaborn distribution plots was added in order to compare various
+    measures of density and distributions based on various levels of decimation (sampling, set through display)
+    and of quantization (set through scale and leaf_order). Also, there is no option in seaborn to fill the area
+    under the curve...
+
+
+    :param df: list, numpy array, time series, pandas or dask dataframe
+    :param var: variable to plot, required if df is a dataframe
+    :param ax: matplotlib axes instance, usually from a figure or other plot
+    :param bins: Specification of hist bins, or None to use Freedman-Diaconis rule
+    :param box: bool, if True plots a box plot. Similar to using violin, use one or the other
+    :param density: bool, if True (default) plots a density plot
+    :param density_fill: bool, if True (default) fill the area under the density curve
+    :param display: maximum number rows to use (1000 default) for calculations, forces sampling if < len(df)
+    :param fig_only: bool, if True (default) returns fig, ax, else returns fix, ax, max_peak, true_min, true_max
+    :param fit: object with fit method, returning a tuple that can be passed to a pdf method
+    :param hist: bool, if True plot a histogram
+    :param hues: optional, a categorical variable for multiple plots
+    :param hue_labels: optional, if using a column that is an object and/or categorical needing translation
+    :param jitter: for strip plots only, add jitter. strip + jitter is similar to using swarm, use one or the other
+    :param leaf_order: the order of magnitude of the leaf. The higher the order, the less quantization.
+    :param legend: bool, if True plots a legend
+    :param limit_var: use min / max from the data, not density plot
+    :param norm_hist: bool, if True histogram will be normed
+    :param random_state: initial random seed for the sampling process, for reproducible research
+    :param rug: bool, if True plot a rug plot
+    :param scale: force a specific scale for building the plot. Defaults to None (automatic).
+    :param singular: force display of a density plot using a singular value, by simulating values of each side
+    :param strip: bool, if True displays a strip plot
+    :param swarm: swarm plot, similar to strip plot. use one or the other
+    :param title: if present, adds a title to the plot
+    :param violin: bool, if True plots a violin plot. Similar to using box, use one or the other
+    :param x_min: force X axis minimum value. See also limit_var
+    :param x_max: force Y axis minimum value. See also limit_var
+    :param y_axis_label: bool, if True displays y axis ticks and label
+    :return: see fig_only
+    """
+    if kind:
+        if "box" in kind:
+            box = True
+        if "hist" in kind:
+            hist = True
+        if "rug" in kind:
+            rug = True
+        if "strip" in kind:
+            strip = True
+        if "swarm" in kind:
+            swarm = True
+        if "violin" in kind:
+            violin = True
+
+    max_peak = 0
+    peak_y = 0
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(20, 16))
+    else:
+        fig = ax.get_figure()
+
+    if title:
+        ax.set_title(title)
+
+    hue_categories = sorted(df[hues].dropna().unique()) if hues else ['all']
+    hue_labels = hue_labels if hue_labels else hue_categories
+
+    for i, hue_val in enumerate(hue_categories):
+        ignore = False
+        if hue_val == 'all':
+            to_plot = df[var] if var else df
+        else:
+            to_plot = df[var][df[hues] == hue_val] if var else df
+        if leaf_order:
+            to_plot = quantize(to_plot, display=display, leaf_order=leaf_order,
+                               random_state=random_state)
+        elif display:
+            to_plot = to_plot.sample(n=display)
+        if density and len(to_plot) == 1:
+            if singular:
+                to_plot = pd.Series([to_plot.values[0] * 0.995, to_plot.values[0] * 1.005])
+            else:
+                warn(
+                    "Cannot plot a density plot using a singular value. Use singular=True to simulate extra data points..")
+                return None
+
+        if density or hist or rug or fit:
+            sns.distplot(to_plot, ax=ax, bins=bins, fit=fit, hist=hist, kde=density, norm_hist=norm_hist, rug=rug)
+            line = ax.lines[i]
+            x = line.get_xydata()[:, 0]
+            y = line.get_xydata()[:, 1]
+            peak_y = max(y)
+
+        if density and density_fill:
+            ax.fill_between(x, y, alpha=0.2)
+
+        if peak_y > max_peak and not ignore:
+            max_peak = peak_y
+
+    if strip and swarm:
+        warn(
+            "Cannot plot a strip and swarm plot, they share the same space. Choose one.")
+        return None
+    if box and violin:
+        warn(
+            "Cannot plot a box and violin plot, they share the same space. Choose one.")
+        return None
+
+    if box or strip or swarm or violin:
+        ax2 = ax.twinx()
+        all = df[var].dropna()
+        if hue_val == 'all':
+            if strip:
+                if jitter:
+                    sns.stripplot(all, jitter=jitter, ax=ax2)
+                else:
+                    sns.stripplot(all, ax=ax2)
+            elif swarm:
+                sns.swarmplot(all, ax=ax2)
+            if box:
+                sns.boxplot(all, ax=ax2)
+            elif violin:
+                sns.violinplot(all, ax=ax2)
+        else:
+            # outside the visible area, for legend
+            ax.scatter(0, max_peak + 1, marker='s', c='C{}'.format(len(hues)), label='all')
+            if strip:
+                if jitter:
+                    sns.stripplot(all, jitter=jitter, ax=ax2, color='C{}'.format(len(hues)))
+                else:
+                    sns.stripplot(all, ax=ax2, color='C{}'.format(len(hues)))
+            elif swarm:
+                sns.swarmplot(all, ax=ax2, color='C{}'.format(len(hues)))
+            if box:
+                sns.boxplot(all, ax=ax2, color='C{}'.format(len(hues)))
+            elif violin:
+                sns.violinplot(all, ax=ax2, color='C{}'.format(len(hues)))
+            hue_labels += ['all']
+        ax2.set(ylim=(-0.01 if violin else -.3, 10 if (box or violin) else 4));
+
+    if limit_var:
+        true_min = min(to_plot)
+        true_max = max(to_plot)
+        ax.set_xlim(true_min, true_max)
+    elif x_max:
+        ax.set_xlim(x_min, x_max)
+    if density or hist or rug:
+        if swarm or (strip and jitter):
+            ax.set_ylim(-0.006, max_peak + 0.006)
+        else:
+            ax.set_ylim(0, max_peak + 0.006)
+
+    if legend:
+
+        ax.legend(hue_labels, ncol=3, loc='upper right', fontsize='medium', frameon=False)
+
+    if not y_axis_label:
+        ax.axes.get_yaxis().set_visible(False)
+        ax.axes.set_xlabel('')
+    plt.box(False)
+    sns.despine(left=True, bottom=True, top=True, right=True);
+    if fig_only:
+        return fig, ax
+    else:
+        return fig, ax, max_peak, true_min, true_max
 
 
 def heatmap(df, annotate=False, asFigure=False, ax=None, column=None, compact=False, display=900,
-            interactive=True, persistence=None, random_state=None, scale=None,
+            interactive=True, leaf_order=1, persistence=None, random_state=None, scale=None,
             trim=False, trim_blank=True, unit='', zoom=None):
     """ heatmap
 
@@ -29,12 +209,13 @@ def heatmap(df, annotate=False, asFigure=False, ax=None, column=None, compact=Fa
     :param df: list, numpy array, time series, pandas or dask dataframe
     :param annotate: display annotations (Z) on heatmap
     :param asFigure: return plot as plotly figure (for web applications)
-    :param ax:  matplotlib axes instance, usually from a figure or other plot
+    :param ax: matplotlib axes instance, usually from a figure or other plot
     :param column: specify which column (string or number) of the dataframe to use,
                    else the first numerical is selected
     :param compact: do not display empty stem rows (with no leaves), defaults to False
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
     :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
+    :param leaf_order: how many leaf digits per data point to display, defaults to 1
     :param persistence: filename. save sampled data to disk, either as pickle (.pkl) or csv (any other extension)
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param scale: force a specific scale for building the plot. Defaults to None (automatic).
@@ -65,7 +246,7 @@ def heatmap(df, annotate=False, asFigure=False, ax=None, column=None, compact=Fa
     min_val, max_val, total_rows = min_max_count(df)
 
     scale_factor, pair, rows = stem_data(df, break_on=None, column=column, compact=compact,
-                                         display=display, leaf_order=1, omin=min_val, omax=max_val,
+                                         display=display, leaf_order=leaf_order, omin=min_val, omax=max_val,
                                          outliers=False, persistence=persistence, random_state=random_state,
                                          scale=scale, total_rows=total_rows, trim=trim, zoom=zoom)
     max_leaves = len(max(rows, key=len))
@@ -120,13 +301,13 @@ def heatmap(df, annotate=False, asFigure=False, ax=None, column=None, compact=Fa
     return num_matrix, scale_factor, fig if asFigure else ax
 
 
-def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, bar_color='C0', bar_outline=None,
-                 break_on=None, column=None, combined=None, compact=False, delimiter_color='C3', display=900,
-                 figure_only=True, flip_axes=False, font_kw=None, leaf_color='k', leaf_order=1, legend_pos='best',
-                 median_alpha=0.25, median_color='C4', mirror=False, outliers=None, outliers_color='C3', persistence=None,
-                 primary_kw=None, random_state=None, scale=None,  secondary=False, secondary_kw=None,
-                 secondary_plot=None, show_stem=True, title=None, trim=False, trim_blank=True, underline_color=None,
-                 unit='', zoom=None):
+def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, ax2=None, bar_color='C0',
+                 bar_outline=None, break_on=None, column=None, combined=None, compact=False, delimiter_color='C3',
+                 display=900, figure_only=True, flip_axes=False, font_kw=None, leaf_color='k', leaf_order=1,
+                 legend_pos='best', median_alpha=0.25, median_color='C4', mirror=False, outliers=None,
+                 outliers_color='C3', persistence=None, primary_kw=None, random_state=None, scale=None,
+                 secondary=False, secondary_kw=None, secondary_plot=None, show_stem=True, title=None,
+                 trim=False, trim_blank=True, underline_color=None, unit='', zoom=None):
     """ stem_graphic
 
     A graphical stem and leaf plot. stem_graphic provides horizontal, vertical or mirrored layouts, sorted in
@@ -139,6 +320,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
     :param alpha: opacity of the bars, median and outliers, defaults to 10%
     :param asc: stem sorted in ascending order, defaults to True
     :param ax: matplotlib axes instance, usually from a figure or other plot
+    :param ax2: matplotlib axes instance, usually from a figure or other plot for back to back
     :param bar_color: the fill color of the bar representing the leaves
     :param bar_outline: the outline color of the bar representing the leaves
     :param break_on: force a break of the leaves at x in (5, 10), defaults to 10
@@ -258,10 +440,11 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
             height = 20
         width = len(rows) + 3
     else:
-        width = max_leaves
+        height = len(rows) + 3
+        width = max_leaves / (max_leaves/30)
         if width < 20:
             width = 20
-        height = len(rows) + 3
+
     if combined is None:
         combined = stems
 
@@ -271,7 +454,8 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
         if flip_axes:
             warn("Error: flip_axes is not available with back to back stem-and-leaf plots.")
             return None
-
+        if ax2:
+            scale = scale_factor
         min_val_df2, max_val_df2, total_rows = min_max_count(df2)
         scale_factor_df2, _, _, rows_df2, stems_df2 = stem_data(df2, break_on=break_on, column=column, compact=compact,
                                                                 display=display, full=True, leaf_order=leaf_order,
@@ -296,13 +480,18 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
             total_width = 20
         total_height = combined_max + 1 - combined_min  #cnt_offset_df2 + len(stems_df2)
 
-        fig, (ax1, ax) = plt.subplots(1, 2, sharey=True, figsize=((total_width / 4), (total_height / 4)))
+        if ax2 is None:
+            fig, (ax1, ax) = plt.subplots(1, 2, sharey=True, figsize=((total_width / 4), (total_height / 4)))
+        else:
+            ax1 = ax2
+        ax1.set_xlim((-1, width + 0.05))
+        ax1.set_ylim((-1, height + 0.05))
 
         plt.box(on=None)
         ax1.axes.get_yaxis().set_visible(False)
         ax1.axes.get_xaxis().set_visible(False)
-        ax1.set_xlim(-1, total_width + 0.05)
-        ax1.set_ylim(-1, total_height + 0.05)
+
+
         _ = stem_graphic(df2,  # NOQA
                          alpha=alpha, ax=ax1, aggregation=mirror and aggregation, asc=asc, bar_color=bar_color,
                          bar_outline=bar_outline, break_on=break_on, column=column,
@@ -323,7 +512,11 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
                           aspect='equal', frameon=False,
                           xlim=(-1, width + 0.05),
                           ylim=(-1, height + 0.05))
-    plt.box(on=None)
+    else:
+        ax.set_xlim((-1, width + 0.05))
+        ax.set_ylim((-1, height + 0.05))
+        fig = ax.get_figure()
+    plt.box(on=True)
     ax.axis('off')
     ax.axes.get_yaxis().set_visible(False)
     ax.axes.get_xaxis().set_visible(False)
@@ -386,7 +579,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
                         bbox={'facecolor': median_color, 'alpha': median_alpha, 'pad': pad}, alpha=leaf_alpha,
                         ha='left', va='bottom')
         if flip_axes:
-            if aggregation and not (df2 is not None and mirror):
+            if (aggregation and secondary and not mirror) or (aggregation and not secondary):
                 ax.text(cnt + offset, 0, tot, fontsize=aggr_fontsize, rotation=90, color=aggr_fontcolor,
                         bbox={'facecolor': aggr_facecolor, 'alpha': alpha, 'pad': pad} if aggr_facecolor is not None
                         else {'alpha': 0},
@@ -404,7 +597,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
                     bbox={'facecolor': bar_color, 'edgecolor': bar_outline, 'alpha': alpha, 'pad': pad})
 
         else:
-            if aggregation and not (df2 is not None and mirror):
+            if (aggregation and secondary and not mirror) or (aggregation and not secondary):
                 ax.text(aggr_offset, cnt + 0.5, tot, fontsize=aggr_fontsize, color=aggr_fontcolor,
                         bbox={'facecolor': aggr_facecolor, 'alpha': alpha, 'pad': pad} if aggr_facecolor is not None
                         else {'alpha': 0},
@@ -429,7 +622,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
     cur_font = FontProperties()
     if flip_axes:
         ax.hlines(2, min_s, min_s + 1 + cnt, color=delimiter_color, alpha=0.7)
-        if aggregation and not (df2 is not None and mirror):
+        if (aggregation and secondary and not mirror) or (aggregation and not secondary):
             ax.hlines(1, min_s, min_s + 1 + cnt, color=delimiter_color, alpha=0.7)
         if outliers:
             ax.text(min_s - 1.5, 1.5, '{} {}'.format(min_val, unit), fontsize=base_fontsize, rotation=90,
@@ -445,7 +638,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
 
     else:
         line_length = 1 + cnt if (ax1 is None) or df2 is not None else 1 + max(stems)
-        if aggregation and not (df2 is not None and mirror):
+        if (aggregation and secondary and not mirror) or (aggregation and not secondary):
             ax.vlines(aggr_line_offset, cnt_offset, line_length, color=delimiter_color, alpha=0.7)
         if show_stem:
             ax.vlines(2.4, cnt_offset, line_length, color=delimiter_color, alpha=0.7)
@@ -459,7 +652,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
             ax.vlines(1.5, -0.5, 0, color=delimiter_color, alpha=0.7)
             ax.vlines(1.5, 1 + cnt, 1.5 + cnt, color=delimiter_color, alpha=0.7)
         legend(ax, width, cnt, asc, flip_axes, mirror, st, lf,
-               scale_factor, delimiter_color, aggregation, cur_font, n, legend_pos, unit)
+               scale_factor, delimiter_color, aggregation and not secondary, cur_font, n, legend_pos, unit)
 
     if secondary_plot is not None:
         secondary_kw = secondary_kw or {'alpha': 0.5}
@@ -504,9 +697,12 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, b
                 ax.plot(y*0+1.2, (y/scale_factor) + 0.01 if asc else -1,
                         'o', markeredgewidth=1, markerfacecolor='None', markeredgecolor='k', **secondary_kw)
     if flip_axes:
-        ax.plot(0, total_height)
+        ax.plot(total_height,0)
+        #ax.plot(0, total_width)
     else:
+        #ax.plot(0, total_height)
         ax.plot(total_width, 0)
+    fig.tight_layout()
     if figure_only:
         return fig, ax
     else:

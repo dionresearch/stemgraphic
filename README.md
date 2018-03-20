@@ -40,6 +40,15 @@ or from this cloned repository, in the package root:
 
 # Latest changes
 
+## Version 0.6.1
+
+- back-to-back stem-and-leaf plots can use predefined axes (secondary ax added)
+- added quantize function (basically a round trip number->stem-and-leaf->number))
+- density_plot added for numerical values with stem-and-leaf quantization and sampling
+- density_plot also support multiple secondary plots like box, violin, rug, strip
+- notebook demoing density_plot
+- notebook demoing comparison of violin, box and stem-and-leaf for certain distributions
+
 ## Version 0.6.0
 
 Version bump to 0.6 due to order of params changing. Shouldn't affect using named args
