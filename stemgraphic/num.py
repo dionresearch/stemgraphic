@@ -14,12 +14,14 @@ The shorthand from previous versions of stemgraphic is still available and defau
 """
 
 from .text import (
+    quantize,
     stem_data,
     stem_dot,
     stem_text
 )
 
 from .graphic import (
+    density_plot,
     heatmap,
     stem_graphic
 )
