@@ -6,6 +6,33 @@ from warnings import warn
 from .helpers import *
 
 
+def quantize(df, column=None, display=750, leaf_order=1, random_state=None, scale=None, trim=None, zoom=None):
+    """ quantize
+
+    Converts a series into stem-and-leaf and back into decimal. This has the potential effect of decimating (or
+    truncating) values in a lossy way.
+
+    :param df: list, numpy array, time series, pandas or dask dataframe
+    :param column: specify which column (string or number) of the dataframe to use,
+                   else the first numerical is selected
+    :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param leaf_order: how many leaf digits per data point to display, defaults to 1
+    :param random_state: initial random seed for the sampling process, for reproducible research
+    :param scale: force a specific scale for building the plot. Defaults to None (automatic).
+    :param trim: ranges from 0 to 0.5 (50%) to remove from each end of the data set, defaults to None
+    :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
+    :return: decimated df
+    """
+    x = df if column is None else df[column]
+    scale, pair, rows, sorted_data, stems = stem_data(x, column=column, display=display, full=True,
+                                                      leaf_order=leaf_order,
+                                                      random_state=random_state,
+                                                      scale=scale, trim=trim, zoom=zoom)
+
+    values = [(stem + leaf) * scale for stem, leaf in sorted_data]
+    return values
+
+
 def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=False, leaf_order=1,
               omin=None, omax=None, outliers=False,  persistence=None, random_state=None, scale=None,
               total_rows=None, trim=False, zoom=None):
@@ -19,12 +46,12 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
     :param full: bool, if True returns all interim results including sorted data and stems
     :param leaf_order: how many leaf digits per data point to display, defaults to 1
-    :param outliers_color: background color for the outlier boxes
+    :param outliers: display outliers - these are from the full data set, not the sample. Defaults to Auto
     :param omin: float, if already calculated, helps speed up the process for large data sets
     :param omax: float, if already calculated, helps speed up the process for large data sets
     :param persistence: persist sampled dataframe
     :param random_state: initial random seed for the sampling process, for reproducible research
-    :param scale: force a specific scale for building the plot. Defaults to None (automatic).
+    :param scale: force a specific scale for building the plot. Defaults to None (automatic)
     :param total_rows: int, if already calculated, helps speed up the process for large data sets
     :param trim: ranges from 0 to 0.5 (50%) to remove from each end of the data set, defaults to None
     :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
@@ -79,6 +106,7 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
         lines = math.floor(2 * math.sqrt(n))
 
     try:
+        x = x[~np.isnan(x)]
         xmin = x.min()
         xmax = x.max()
     except AttributeError:
