@@ -19,6 +19,7 @@ setup(name='stemgraphic',
           "python-levenshtein",
           "seaborn"
       ],
+      include_package_data=True,
       scripts=['bin/stem','bin/stem.bat'],
       description='Graphic and text stem-and-leaf plots',
       url='http://github.com/fdion/stemgraphic',

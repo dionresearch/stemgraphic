@@ -40,6 +40,10 @@ or from this cloned repository, in the package root:
 
 # Latest changes
 
+## Version 0.6.2
+
+- Bugfix for VERSION
+
 ## Version 0.6.1
 
 - back-to-back stem-and-leaf plots can use predefined axes (secondary ax added)
