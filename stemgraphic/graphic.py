@@ -84,6 +84,8 @@ def density_plot(df, var=None, ax=None, bins=None, box=None, density=True, densi
 
     max_peak = 0
     peak_y = 0
+    true_min = 'nan'
+    true_max = 'nan'
     if ax is None:
         fig, ax = plt.subplots(figsize=(20, 16))
     else:
@@ -108,7 +110,10 @@ def density_plot(df, var=None, ax=None, bins=None, box=None, density=True, densi
             to_plot = to_plot.sample(n=display)
         if density and len(to_plot) == 1:
             if singular:
-                to_plot = pd.Series([to_plot.values[0] * 0.995, to_plot.values[0] * 1.005])
+                try:
+                    to_plot = pd.Series([to_plot.values[0] * 0.995, to_plot.values[0] * 1.005])
+                except AttributeError:
+                    to_plot = pd.Series([to_plot[0] * 0.995, to_plot[0] * 1.005])
             else:
                 warn(
                     "Cannot plot a density plot using a singular value. Use singular=True to simulate extra data points..")
@@ -119,6 +124,8 @@ def density_plot(df, var=None, ax=None, bins=None, box=None, density=True, densi
             line = ax.lines[i]
             x = line.get_xydata()[:, 0]
             y = line.get_xydata()[:, 1]
+            true_min = min(x)
+            true_max = max(x)
             peak_y = max(y)
 
         if density and density_fill:
@@ -370,10 +377,10 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, a
                 if df.dtypes[i] in ('int64', 'float64'):
                     column = i
                     break
-        if dd:
-            df = df[df.columns.values[column]]
-        else:
-            df = df.ix[:, column]
+        #if dd:
+        #    df = df[df.columns.values[column]]
+        #else:
+        df = df.ix[:, column].dropna()
 
     if font_kw is None:
         font_kw = {}
@@ -403,6 +410,9 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, a
         leaf_alpha = 0
 
     min_val, max_val, total_rows = min_max_count(df)
+    if total_rows == 0:
+        warn('No data to plot')
+        return None, None
 
     scale_factor, pair, rows, _, stems = stem_data(df, break_on=break_on, column=column, compact=compact,
                                                    display=display, full=True, leaf_order=leaf_order, omin=min_val,

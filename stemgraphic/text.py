@@ -72,10 +72,10 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
                 if x.dtypes[i] in ('int64', 'float64'):
                     column = i
                     break
-        if dd:
-            x = x[x.columns.values[column]]
-        else:
-            x = x.ix[:, column]
+        #if dd:
+        #    x = x[x.columns.values[column]]
+        #else:
+        x = x.ix[:, column]
 
     # Sampling or not we need the absolute min/max
     if omin is None or omax is None or total_rows is None:
@@ -122,11 +122,16 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
     # we will trim on the sample, or the whole data set
     lowest, highest = percentile(x, trim) if trim else xmin, xmax
     # scale_factor = as small as possible but lines * S must be >= spread
+    if lines == 0:
+        lines = 1
     r_value = spread / lines
     if scale:  # we were passed a scale, use it
         scale_factor = scale
     else:  # The bulk of the logic to figure out the best scaling and visualization
-        scale_factor = pow(10, math.ceil(math.log(r_value, 10)))
+        try:
+            scale_factor = pow(10, math.ceil(math.log(r_value, 10)))
+        except ValueError:
+            scale_factor = 1
         check = math.floor(xmax / scale_factor - xmin / scale_factor + 1)
         if check > lines:
             scale_factor *= 10
