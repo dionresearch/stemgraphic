@@ -40,6 +40,12 @@ or from this cloned repository, in the package root:
 
 # Latest changes
 
+
+## Version 0.7.0
+
+- Made Levenshtein module optional
+- Small Multiples support
+
 ## Version 0.6.2
 
 - Bugfix for VERSION
