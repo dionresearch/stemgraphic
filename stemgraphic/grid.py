@@ -122,13 +122,6 @@ def small_multiples(df, var, axes=None, bins=None, box=None, cols=None, col_labe
             to_plot = df[full_filter]
 
             if len(to_plot) > 0:
-                # if density and len(to_plot) == 1 and singular:
-                #    ignore = True
-                #    alt_plot = pd.Series([to_plot[var].values[0]*0.995, to_plot.values[0]*1.005] )
-                #    ax[j+offset] = sns.distplot(alt_plot, kde=density,
-                #                                hist=hist, norm_hist=norm_hist, rug=rug,
-                #                                ax=ax[j+offset])
-                # else:
                 if k == 0 and stem_display and shared_stem:
                     secondary_to_plot = to_plot
                 elif stem_display:
@@ -160,18 +153,6 @@ def small_multiples(df, var, axes=None, bins=None, box=None, cols=None, col_labe
                                                                      norm_hist=norm_hist, random_state=random_state,
                                                                      rug=rug, strip=strip,
                                                                      x_min=x_min, x_max=x_max)
-                # if density or hist or rug:
-                #    line = ax[j+offset].lines[i]
-                #    x = line.get_xydata()[:,0]
-                #    y = line.get_xydata()[:,1]
-                #    peak_y=max(y)
-                #    if peak_y > max_peak and not ignore:
-                #        max_peak = peak_y
-                #    if density_fill:
-                #        ax[j+offset].fill_between(x, y, alpha=0.2)
-                # if strip:
-                #    ax[j+offset] = sns.stripplot(df[var][full_filter].dropna(), jitter=jitter,
-                #                           ax=ax[j+offset])
 
                 ax[j + offset].axes.get_yaxis().set_visible(False)
                 ax[j + offset].axes.set_xlabel('')
@@ -190,8 +171,6 @@ def small_multiples(df, var, axes=None, bins=None, box=None, cols=None, col_labe
                         ax[j + offset].set_xlim(0, true_max * 2)
                         ax[j + offset].set_ylim(true_min, true_max)
 
-            # else:
-            #        ax[j+offset].set_xlim(df[var][full_filter].dropna().min(), df[var][full_filter].dropna().max())
             if x_min and x_max:
                 ax[j + offset].set_xlim(x_min, x_max)
             if density or hist or rug:
