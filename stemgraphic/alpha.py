@@ -25,7 +25,10 @@ import unicodedata
 from urllib.request import urlopen
 from warnings import warn
 
-import Levenshtein
+try:
+    import Levenshtein
+except ImportError:
+    Levenshtein = None
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -626,7 +629,11 @@ def radar(word, comparisons, ascending=True, display=100, label=True, metric=Non
     :return:
     """
     if metric is None:
-        metric = Levenshtein.distance
+        if Levenshtein:
+            metric = Levenshtein.distance
+        else:
+            warn('metric not specified and Levenshtein module is not available. Specify an alternate metric.')
+            return None
     # TODO: switch to ngram_data for stem-and-leaf support and better word support
     if isinstance(comparisons, str):
         with open(comparisons) as r:
