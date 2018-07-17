@@ -40,6 +40,9 @@ or from this cloned repository, in the package root:
 
 # Latest changes
 
+## Version 0.7.2
+
+- Bugfix for secondary plot calculation
 
 ## Version 0.7.0
 

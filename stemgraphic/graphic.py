@@ -426,7 +426,7 @@ def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, a
         # more than 1/3 on a single stem, let's try one more time
         if random_state:
             random_state += 1
-        scale_factor2, pair2, rows2, stems2 = stem_data(df, break_on=break_on, column=column, compact=compact,
+        scale_factor2, pair2, rows2, _, stems2 = stem_data(df, break_on=break_on, column=column, compact=compact,
                                                         display=display, full=True, leaf_order=leaf_order, omin=min_val,
                                                         omax=max_val, outliers=False, persistence=persistence,
                                                         random_state=random_state, scale=scale, total_rows=total_rows,
