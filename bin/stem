@@ -39,7 +39,7 @@ type_to_alias = {
 
 
 if __name__ == "__main__":
-    arguments = docopt(__doc__, version='Stemgraphic 0.7.3')
+    arguments = docopt(__doc__, version='Stemgraphic 0.7.4')
     filename = arguments['<input>']
 
     alpha=False

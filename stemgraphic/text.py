@@ -109,7 +109,7 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
         x = x[~np.isnan(x)]
         xmin = x.min()
         xmax = x.max()
-    except (AttributeError, ValueError):
+    except (AttributeError, TypeError):
         xmin = min(x)
         xmax = max(x)
 

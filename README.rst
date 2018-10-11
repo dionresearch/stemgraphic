@@ -50,7 +50,7 @@ or from this cloned repository, in the package root:
 Latest changes
 ==============
 
-Version 0.7.3
+Version 0.7.4
 -------------
 
 - Bugfix for stem_text with plain list (df and numpy are ok)
