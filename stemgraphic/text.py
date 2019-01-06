@@ -177,6 +177,7 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
         row = '{}\n    ¡'.format(omin)
 
     neg_zero_leaf = len([l for l, s in sorted_data if -1 < l < 0])
+    pos_zero_leaf = len([l for l, s in sorted_data if 0 < l < 1])
     neg_zero = None
     for leaf, stem in sorted_data:
         #leaf = round(f_leaf, 1 + leaf_order)
@@ -200,6 +201,9 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
                 if break_on == 5 and row[0:4] != '    ':
                     row = '    | '
                     rows.append(row)
+                if current_stem == -0.0 and pos_zero_leaf == 0:
+                    pos_zero = '{:>3} |'.format("0")
+                    rows.append(pos_zero)
                 for missing in range(int(current_stem) + 1, int(stem)):
                     if int(current_stem) < 0 and missing == 0:
                         neg_zero = '{:>3} |'.format("-0")
