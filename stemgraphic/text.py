@@ -176,6 +176,8 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
     if outliers:
         row = '{}\n    ¡'.format(omin)
 
+    neg_zero_leaf = len([l for l, s in sorted_data if -1 < l < 0])
+    neg_zero = None
     for leaf, stem in sorted_data:
         #leaf = round(f_leaf, 1 + leaf_order)
         if stem == current_stem:
@@ -206,6 +208,11 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
                     rows.append(empty_row)
                     if break_on == 5:
                         rows.append('    | ')
+                if neg_zero_leaf == 0 and neg_zero is None and int(current_stem) < 0 and stem == 0:
+                    # special case where 0 is a stem, we have transition, but no -0 value
+                    neg_zero = '{:>3} |'.format("-0")
+                    rows.append(neg_zero)
+                    print(neg_zero)
 
             current_leaf = str(round(abs(leaf), 1 + leaf_order))[2:leaf_order + 2].zfill(leaf_order)
             if current_stem and int(current_leaf) >= break_on:
