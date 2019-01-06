@@ -212,7 +212,6 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
                     # special case where 0 is a stem, we have transition, but no -0 value
                     neg_zero = '{:>3} |'.format("-0")
                     rows.append(neg_zero)
-                    print(neg_zero)
 
             current_leaf = str(round(abs(leaf), 1 + leaf_order))[2:leaf_order + 2].zfill(leaf_order)
             if current_stem and int(current_leaf) >= break_on:
