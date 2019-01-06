@@ -27,6 +27,10 @@ Documentation is available as pdf
 
 The official website of stemgraphic is: http://stemgraphic.org
 
+See also:
+`Are you smarter than a fifth grader?
+ <https://www.linkedin.com/pulse/you-smarter-than-fifth-grader-francois-dion/>`__
+
 Installation
 ============
 
@@ -49,6 +53,11 @@ or from this cloned repository, in the package root:
 
 Latest changes
 ==============
+
+Version 0.7.5
+-------------
+
+- Bugfix for issue 12, -0 stem not showing in certain cases
 
 Version 0.7.4
 -------------
