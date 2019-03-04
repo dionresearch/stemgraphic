@@ -23,5 +23,6 @@ from .text import (
 from .graphic import (
     density_plot,
     heatmap,
+    leaf_scatter,
     stem_graphic
 )
