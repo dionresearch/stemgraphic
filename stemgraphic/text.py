@@ -238,8 +238,9 @@ def stem_data(x,  break_on=None, column=None, compact=False, display=300, full=F
         return scale_factor, key_label, rows
 
 
-def stem_dot(df, asc=True, break_on=None, column=None, compact=False, display=300, leaf_order=1, legend_pos='best',
-             marker=None, outliers=True, random_state=None, scale=None, trim=False, unit='', zoom=None):
+def stem_dot(df, asc=True, break_on=None, column=None, compact=False, display=300, flip_axes=False,
+             leaf_order=1, legend_pos='best', marker=None, outliers=True, persistence=None,
+             random_state=None, scale=None, trim=False, unit='', zoom=None):
     """
 
     :param df: list, numpy array, time series, pandas or dask dataframe
@@ -249,9 +250,11 @@ def stem_dot(df, asc=True, break_on=None, column=None, compact=False, display=30
                    else the first numerical is selected
     :param compact: do not display empty stem rows (with no leaves), defaults to False
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param flip_axes: bool, default is False
     :param legend_pos: One of 'top', 'bottom', 'best' or None, defaults to 'best'.
     :param marker: char, symbol to use as marker. 'O' is default. Suggested alternatives: '*', '+', 'x', '.', 'o'
     :param outliers: display outliers - these are from the full data set, not the sample. Defaults to Auto
+    :param persistence: filename. save sampled data to disk, either as pickle (.pkl) or csv (any other extension)
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param scale: force a specific scale for building the plot. Defaults to None (automatic).
     :param trim: ranges from 0 to 0.5 (50%) to remove from each end of the data set, defaults to None
@@ -259,7 +262,7 @@ def stem_dot(df, asc=True, break_on=None, column=None, compact=False, display=30
     :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
     """
     if marker is None:
-        marker = 'O'  # commonly used, but * could also be used
+        marker = '●'  # commonly used, but * could also be used
     x = df if column is None else df[column]
     scale, pair, rows = stem_data(x,  break_on=break_on, column=column, compact=compact,
                                   display=display, leaf_order=leaf_order,
@@ -270,19 +273,35 @@ def stem_dot(df, asc=True, break_on=None, column=None, compact=False, display=30
         print('Key: \n{} => {}.{}x{} = {} {}'.format(pair, st, lf, scale, key_calc(st, lf, scale), unit))
 
     ordered_rows = rows if asc else rows[::-1]
+    dot_rows = []
     for row in ordered_rows:
         try:
             st, lf = row.split('|')
-            print("{}|{}".format(st, 'O' * len(lf)))
+            dot_rows.append("{}|{}".format(st, marker * len(lf)))
         except ValueError:
             # no pipe in row, print as is
+            dot_rows.append(row)
+
+    if flip_axes:
+        max_len = len(max(dot_rows, key=len))
+        padded_rows = [row + (' ' * (max_len - len(row))) for row in dot_rows if '|' in row]
+        flipped_rows = [''.join(chars) for chars in zip(*padded_rows)]
+        ordered_rows = flipped_rows[::-1] if asc else flipped_rows
+        print()
+        for row in ordered_rows:
+            if '|' in row:
+                print(row.replace('|', '-') + "⇪")
+            else:
+                print(row)
+    else:
+        for row in dot_rows:
             print(row)
     if legend_pos is not None and legend_pos != 'top':
         st, lf = pair.split('|')
         print('Scale: \n{} => {}.{}x{} = {} {}'.format(pair, st, lf, scale, key_calc(st, lf, scale), unit))
 
 
-def stem_text(df, asc=True, break_on=None, column=None, compact=False, display=300,
+def stem_text(df, asc=True, break_on=None, column=None, compact=False, display=300, flip_axes=False,
               legend_pos='best', outliers=True, persistence=None,
               random_state=None, scale=None, trim=False, unit='', zoom=None):
     """
@@ -294,6 +313,7 @@ def stem_text(df, asc=True, break_on=None, column=None, compact=False, display=3
                    else the first numerical is selected
     :param compact: do not display empty stem rows (with no leaves), defaults to False
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param flip_axes: bool, default is False
     :param legend_pos: One of 'top', 'bottom', 'best' or None, defaults to 'best'.
     :param outliers: display outliers - these are from the full data set, not the sample. Defaults to Auto
     :param persistence: filename. save sampled data to disk, either as pickle (.pkl) or csv (any other extension)
@@ -312,8 +332,20 @@ def stem_text(df, asc=True, break_on=None, column=None, compact=False, display=3
         print('Key: \n{} => {}.{}x{} = {} {}'.format(pair, st, lf, scale, key_calc(st, lf, scale), unit))
 
     ordered_rows = rows if asc else rows[::-1]
-    for row in ordered_rows:
-        print(row)
+    max_len = len(max(ordered_rows, key=len))
+    padded_rows = [row + (' ' * (max_len - len(row))) for row in ordered_rows if '|' in row]
+    if flip_axes:
+        flipped_rows = [''.join(chars) for chars in zip(*padded_rows)]
+        ordered_rows = flipped_rows[::-1] if asc else flipped_rows
+        print()
+        for row in ordered_rows:
+            if '|' in row:
+                print(row.replace('|', '-')+"⇪")
+            else:
+                print(row)
+    else:
+        for row in ordered_rows:
+            print(row)
     if legend_pos is not None and legend_pos != 'top':
         st, lf = pair.split('|')
         print('Key: \n{} => {}.{}x{} = {} {}'.format(pair, st, lf, scale, key_calc(st, lf, scale), unit))
