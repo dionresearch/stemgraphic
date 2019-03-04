@@ -13,6 +13,16 @@ except ImportError:
     dd = False
 
 
+def jitter(data, scale):
+    """Adds jitter to data, for display purpose
+
+    :param data: numpy or pandas dataframe
+    :param scale:
+    :return:
+    """
+    return data + np.random.rand(len(data))/(2*scale)
+
+
 def key_calc(stem, leaf, scale):
     """Calculates a value from a stem, a leaf and a scale.
 
@@ -102,8 +112,8 @@ def min_max_count(x, column=0):
 
     Handles min, max and count. This works on numpy, lists, pandas and dask dataframes.
 
-    :param column:
     :param x: list, numpy array, series, pandas or dask dataframe
+    :param column: future use
     :return: min, max and count
     """
     if dd and type(x) in (dd.core.DataFrame, dd.core.Series):
@@ -118,6 +128,19 @@ def min_max_count(x, column=0):
         count = len(x)
 
     return omin, omax, int(count)
+
+
+def na_count(x, column=0):
+    """ min_max_count
+
+        Handles min, max and count. This works on numpy, lists, pandas and dask dataframes.
+
+        :param x: list, numpy array, series, pandas or dask dataframe
+        :param column: future use
+        :return: all numpy nan count
+        """
+    val_missing = x.isnull().sum()
+    return val_missing
 
 
 def npy_save(path, array):
