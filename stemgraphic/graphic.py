@@ -8,10 +8,15 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
 import pandas as pd
+try:
+    from plotly.offline import iplot_mpl
+    plotly_module = True
+except ModuleNotFoundError:
+    plotly_module = False
 import seaborn as sns
 from warnings import warn
 
-from .helpers import key_calc, legend, min_max_count, dd
+from .helpers import jitter, key_calc, legend, min_max_count, dd
 from .text import quantize, stem_data
 
 
@@ -306,6 +311,134 @@ def heatmap(df, annotate=False, asFigure=False, ax=None, column=None, compact=Fa
         ax.set_title(title)
         sns.heatmap(num_matrix, annot=annotate, ax=ax)
     return num_matrix, scale_factor, fig if asFigure else ax
+
+
+def leaf_scatter(df, alpha=0.1, asc=True, ax=None, break_on=None, column=None,
+                 compact=False, delimiter_color='C3', display=900, figure_only=True,
+                 flip_axes=False, font_kw=None, grid=False, interactive=True,
+                 leaf_color='k', leaf_jitter=False, leaf_order=1,
+                 legend_pos='best', mirror=False, persistence=None, primary_kw=None, random_state=None, scale=None,
+                 scaled_leaf=True, zoom=None):
+    """ leaf_scatter
+
+    Scatter for numerical values based on leaf for X axis (scaled or not) and stem for Y axis
+
+
+    :param df: list, numpy array, time series, pandas or dask dataframe
+    :param alpha: opacity of the dots, defaults to 10%
+    :param asc: stem (Y axis) sorted in ascending order, defaults to True
+    :param ax: matplotlib axes instance, usually from a figure or other plot
+    :param break_on: force a break of the leaves at x in (5, 10), defaults to 10
+    :param column: specify which column (string or number) of the dataframe to use,
+                   else the first numerical is selected
+    :param compact: do not display empty stem rows (with no leaves), defaults to False
+    :param delimiter_color: color of the line between aggregate and stem and stem and leaf
+    :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param figure_only: bool if True (default) returns matplotlib (fig,ax), False returns (fig,ax,df)
+    :param flip_axes: X becomes Y and Y becomes X
+    :param font_kw: keyword dictionary, font parameters
+    :param grid: show grid
+    :param interactive: if plotly is available, renders as interactive plot in notebook. False to render image.
+    :param leaf_color: font color of the leaves
+    :param leaf_jitter: add jitter to see density of each specific stem/leaf combo
+    :param leaf_order: how many leaf digits per data point to display, defaults to 1
+    :param legend_pos: One of 'top', 'bottom', 'best' or None, defaults to 'best'.
+    :param mirror: mirror the plot in the axis of the delimiters
+    :param persistence: filename. save sampled data to disk, either as pickle (.pkl) or csv (any other extension)
+    :param primary_kw: stem-and-leaf plot additional arguments
+    :param random_state: initial random seed for the sampling process, for reproducible research
+    :param scale: force a specific scale for building the plot. Defaults to None (automatic).
+    :param scaled_leaf: scale leafs, bool
+    :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
+    :return:
+    """
+
+    try:
+        cols = len(df.columns)
+    except AttributeError:
+        # wasn't a multi column data frame, might be a list
+        cols = 1
+    if cols > 1:
+        if column is None:
+            # We have to figure out the first numerical column on our own
+            start_at = 1 if df.columns[0] == 'id' else 0
+            for i in range(start_at, len(df.columns)):
+                if df.dtypes[i] in ('int64', 'float64'):
+                    column = i
+                    break
+        df = df.ix[:, column].dropna()
+
+    if font_kw is None:
+        font_kw = {}
+    if primary_kw is None:
+        primary_kw = {}
+    base_fontsize = font_kw.get('fontsize', 12)
+
+    stem_fontsize = font_kw.get('stem_fontsize', base_fontsize)
+    stem_fontweight = font_kw.get('stem_fontweight', 'normal')
+    stem_facecolor = font_kw.get('stem_facecolor', None)
+    stem_fontcolor = font_kw.get('stem_color', 'k')
+
+    min_val, max_val, total_rows = min_max_count(df)
+    fig = None
+
+    if leaf_color is None:
+        leaf_color = 'k'
+        leaf_alpha = 0
+
+    if total_rows == 0:
+        warn('No data to plot')
+        return None, None
+
+    scale_factor, pair, rows, sorted_data, stems = stem_data(df, break_on=break_on, column=column, compact=compact,
+                                                   display=display, full=True, leaf_order=leaf_order, omin=min_val,
+                                                   omax=max_val, outliers=False, persistence=persistence,
+                                                   random_state=random_state, scale=scale, total_rows=total_rows,
+                                                   zoom=zoom)
+    st, lf = pair.split('|')
+    n = display if total_rows > display else total_rows
+
+    if scaled_leaf:
+        x = [abs(int(l*10)) for l, s in sorted_data]
+    else:
+        x = [abs(l) for l, s in sorted_data]
+    text_data = x
+
+    if leaf_jitter:
+        x = jitter(x, scale=1 if scaled_leaf else scale_factor)
+
+    if total_rows <= display:
+        y = sorted(df)
+    else:
+        y = [(s + l) * scale_factor for l, s in sorted_data]
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10,8))
+    else:
+        fig = ax.get_figure()
+
+    ax.scatter(x, y, alpha=alpha, label='Ylab + X' if scaled_leaf else 'Ylab + X * 10')
+    for i, text in enumerate(text_data):
+        ax.annotate(text, (x[i], y[i]), color=leaf_color)
+
+    plt.box(on=None)
+    ax.axes.axvline(x=-0.5 if scaled_leaf else -0.5/scale_factor, color=delimiter_color)
+    ax.axes.get_xaxis().set_visible(False)
+    if mirror:
+        ax.set_ylim(ax.get_ylim()[::-1]) if flip_axes else ax.set_xlim(ax.get_xlim()[::-1])
+    if not asc:
+        ax.set_xlim(ax.get_xlim()[::-1]) if flip_axes else ax.set_ylim(ax.get_ylim()[::-1])
+    if grid:
+        plt.grid(axis='y')
+
+    if legend_pos is not None:
+        ax.legend()
+    if plotly_module and interactive:
+        return iplot_mpl(fig)
+    elif figure_only:
+        return fig, ax
+    else:
+        return fig, ax, df
 
 
 def stem_graphic(df, df2=None, aggregation=True, alpha=0.1, asc=True, ax=None, ax2=None, bar_color='C0',
