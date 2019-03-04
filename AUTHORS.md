@@ -3,4 +3,4 @@
 ## Development
 
 
-    Francois Dion
+    Francois Dion (fdion@dionresearch.com)
