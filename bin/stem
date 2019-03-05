@@ -28,21 +28,29 @@ import os
 
 from docopt import docopt
 import pandas as pd
-from stemgraphic import stem_text, stem_graphic, stem_dot, stem_hist, stem_kde, stem_line, dd
+from stemgraphic import (
+    stem_text,
+    stem_graphic,
+    stem_dot,
+    stem_hist,
+    stem_kde,
+    stem_line,
+    dd,
+)
 from stemgraphic.helpers import na_count
 
 type_to_alias = {
-    'dot': stem_dot,
-    'hist': stem_hist,
-    'graphic': stem_graphic,
-    'kde': stem_kde,
-    'line': stem_line,
-    'text': stem_text
+    "dot": stem_dot,
+    "hist": stem_hist,
+    "graphic": stem_graphic,
+    "kde": stem_kde,
+    "line": stem_line,
+    "text": stem_text,
 }
 
 if __name__ == "__main__":
-    arguments = docopt(__doc__, version='Stemgraphic 0.8.1')
-    filename = arguments['<input>']
+    arguments = docopt(__doc__, version="Stemgraphic 0.8.1")
+    filename = arguments["<input>"]
 
     alpha = False
     try:
@@ -51,16 +59,16 @@ if __name__ == "__main__":
         if filesize > 2 * 1024 ** 3:  # 2GB, consider large
             large = True
         else:
-            large = arguments['-f']
+            large = arguments["-f"]
 
     except FileNotFoundError:
         # doesn't exist, or is distributed.
         filesize = 0
         large = True
-    trim = arguments.get('-p', False)
-    wide = arguments.get('-w', False)
-    server = arguments.get('-s', False)
-    persistence = arguments.get('-k', None)
+    trim = arguments.get("-p", False)
+    wide = arguments.get("-w", False)
+    server = arguments.get("-s", False)
+    persistence = arguments.get("-k", None)
     if server:
         large = True  # force it when server is specified
     if dd and large:  # dask is available
@@ -72,40 +80,44 @@ if __name__ == "__main__":
             print(client.ncores())
     else:
         data_frame = pd
-    if filename[-4:] in ('xlsx', '.xls'):
+    if filename[-4:] in ("xlsx", ".xls"):
         df = pd.read_excel(filename)  # no way an excel sheet needs dask
-    elif filename[-4:] == '.tsv':
+    elif filename[-4:] == ".tsv":
         df = data_frame.read_table(filename)
     else:
-        if arguments['-c'] is not None:
-            df = data_frame.read_csv(filename, usecols=[int(arguments['-c'])])
-            if df.dtypes[0] == 'object':
+        if arguments["-c"] is not None:
+            df = data_frame.read_csv(filename, usecols=[int(arguments["-c"])])
+            if df.dtypes[0] == "object":
                 print("Specified column is an object, trying stemgraphic.alpha.")
                 from stemgraphic.alpha import stem_graphic, stem_text
 
                 alpha = True
         else:
             df = data_frame.read_csv(filename)
-    if arguments['-d']:
+    if arguments["-d"]:
         print(datetime.today())
         res = df.describe(include="all", percentiles=[0.1, 0.25, 0.5, 0.75, 0.9]).T
         res["total"] = df.shape[0]
         res["data_type"] = df.dtypes
-        res["missing"] = na_count(df)  # currently a straight is null, but will evolve to a data quality type metric
-        pd.set_option('display.max_rows', 500)
-        pd.set_option('display.max_columns', 500)
-        pd.options.display.float_format = '{:,}'.format
+        res["missing"] = na_count(
+            df
+        )  # currently a straight is null, but will evolve to a data quality type metric
+        pd.set_option("display.max_rows", 500)
+        pd.set_option("display.max_columns", 500)
+        pd.options.display.float_format = "{:,}".format
         print(res)
 
-    if arguments['-o']:
-        fig, ax = type_to_alias.get(arguments.get('-t', 'graphic'), stem_graphic)(df, trim=trim, flip_axes=wide)
-        fig.savefig(arguments['-o'])
+    if arguments["-o"]:
+        fig, ax = type_to_alias.get(arguments.get("-t", "graphic"), stem_graphic)(
+            df, trim=trim, flip_axes=wide
+        )
+        fig.savefig(arguments["-o"])
     else:
         if alpha:
-            type_to_alias.get(arguments.get('-t', 'text'), stem_text)(df.iloc[:, 0].tolist(), caps=False)
+            type_to_alias.get(arguments.get("-t", "text"), stem_text)(
+                df.iloc[:, 0].tolist(), caps=False
+            )
         else:
-            type_to_alias.get(arguments.get('-t', 'text'), stem_text)(df,
-                                                                      outliers=True,
-                                                                      persistence=persistence,
-                                                                      trim=trim,
-                                                                      flip_axes=wide)
+            type_to_alias.get(arguments.get("-t", "text"), stem_text)(
+                df, outliers=True, persistence=persistence, trim=trim, flip_axes=wide
+            )
