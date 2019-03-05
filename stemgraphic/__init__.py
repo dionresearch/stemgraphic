@@ -11,7 +11,7 @@ See research paper ( http://artchiv.es/pydata2016/stemgraphic ) for more technic
 A command line utility was installed along with the package, allowing to process excel or csv
 files. See: stem -h
 """
-from .aliases import stem_hist, stem_kde, stem_line
+from .aliases import stem_hist, stem_kde, stem_line, stem_dot, stem_symmetric_dot
 from .graphic import stem_graphic
 from .text import stem_data, stem_dot, stem_text
 from .helpers import dd
