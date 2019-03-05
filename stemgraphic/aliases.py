@@ -2,9 +2,20 @@
 from .graphic import stem_graphic
 
 
-def stem_hist(x, aggregation=False, alpha=1, asc=True, column=None, color='b',
-              delimiter_color='r', display=300, flip_axes=True, legend_pos='short',
-              outliers=False, trim=False):
+def stem_hist(
+    x,
+    aggregation=False,
+    alpha=1,
+    asc=True,
+    column=None,
+    color="b",
+    delimiter_color="r",
+    display=300,
+    flip_axes=True,
+    legend_pos="short",
+    outliers=False,
+    trim=False,
+):
     """stem_hist builds a histogram matching the stem-and-leaf plot, with the numbers hidden, as shown on the
     cover of the companion brochure.
 
@@ -23,13 +34,24 @@ def stem_hist(x, aggregation=False, alpha=1, asc=True, column=None, color='b',
     :param trim: this is NOP, for compatibility
     :return: matplotlib figure and axes instance
     """
-    font_settings = {
-        'fontsize': 8,
-    }
-    return stem_graphic(x, alpha=alpha, aggregation=aggregation, asc=asc, bar_color=color, break_on=10,
-                        column=column, delimiter_color=delimiter_color, display=display, flip_axes=flip_axes,
-                        font_kw=font_settings, leaf_color=color, legend_pos=legend_pos, median_color=None,
-                        outliers=False)
+    font_settings = {"fontsize": 8}
+    return stem_graphic(
+        x,
+        alpha=alpha,
+        aggregation=aggregation,
+        asc=asc,
+        bar_color=color,
+        break_on=10,
+        column=column,
+        delimiter_color=delimiter_color,
+        display=display,
+        flip_axes=flip_axes,
+        font_kw=font_settings,
+        leaf_color=color,
+        legend_pos=legend_pos,
+        median_color=None,
+        outliers=False,
+    )
 
 
 def stem_kde(x, **kw_args):
@@ -39,12 +61,24 @@ def stem_kde(x, **kw_args):
     :param kw_args:
     :return: matplotlib figure and axes instance
     """
-    kw_args['secondary_plot'] = 'overlay_kde'
+    kw_args["secondary_plot"] = "overlay_kde"
     return stem_graphic(x, **kw_args)
 
 
-def stem_line(x, aggregation=False, alpha=0, asc=True, column=None, color='k',
-              delimiter_color='r', display=300, flip_axes=True, outliers=False, secondary_plot=None, trim=False):
+def stem_line(
+    x,
+    aggregation=False,
+    alpha=0,
+    asc=True,
+    column=None,
+    color="k",
+    delimiter_color="r",
+    display=300,
+    flip_axes=True,
+    outliers=False,
+    secondary_plot=None,
+    trim=False,
+):
     """stem_line builds a stem-and-leaf plot with lines instead of bars.
 
     :param x: list, numpy array, time series, pandas or dask dataframe
@@ -62,7 +96,21 @@ def stem_line(x, aggregation=False, alpha=0, asc=True, column=None, color='k',
     :param trim: this is NOP, for compatibility
     :return: matplotlib figure and axes instance
     """
-    return stem_graphic(x, alpha=alpha, aggregation=aggregation, asc=asc, bar_color=None, break_on=10,
-                        column=column, delimiter_color=delimiter_color, display=display, flip_axes=flip_axes,
-                        leaf_color=color, legend_pos='short', median_color=None, outliers=outliers,
-                        secondary_plot=secondary_plot, underline_color=color)
+    return stem_graphic(
+        x,
+        alpha=alpha,
+        aggregation=aggregation,
+        asc=asc,
+        bar_color=None,
+        break_on=10,
+        column=column,
+        delimiter_color=delimiter_color,
+        display=display,
+        flip_axes=flip_axes,
+        leaf_color=color,
+        legend_pos="short",
+        median_color=None,
+        outliers=outliers,
+        secondary_plot=secondary_plot,
+        underline_color=color,
+    )
