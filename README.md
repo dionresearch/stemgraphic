@@ -42,6 +42,16 @@ or from this cloned repository, in the package root:
 
 # Latest changes
 
+
+## Version 0.8.1
+
+- command line output improved: description of data more elaborate
+- leaf_scatter plot added
+- stem_text support for flip_axes
+- stem_dot support flip_axes
+- stem_dot defaults marker to unicode circle
+- added support for dot for command line stem (stem -t dot)
+
 ## Version 0.7.5
 
 - Bugfix for issue 12, -0 stem not showing in certain cases 
