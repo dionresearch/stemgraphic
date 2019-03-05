@@ -188,8 +188,12 @@ def min_max_count(x, column=0):
     if dd and type(x) in (dd.core.DataFrame, dd.core.Series):
         omin, omax, count = dd.compute(x.min(), x.max(), x.count())
     elif type(x) in (pd.DataFrame, pd.Series):
-        omin = x.min()
-        omax = x.max()
+        try:
+            omin = x.min().values[0]
+            omax = x.max().values[0]
+        except AttributeError:
+            omin = x.min()
+            omax = x.max()
         count = len(x)
     else:
         omin = min(x)

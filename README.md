@@ -43,6 +43,14 @@ or from this cloned repository, in the package root:
 # Latest changes
 
 
+## Version 0.8.2
+
+- bugfix on min/max values from command line
+- silence warning from matplotlib on tight_layout
+- Alignment issue on title for back to back stem-and-leaf plots
+- bugfix on dot plot number of dots
+- Added symmetric dot plot option and alias since I was working on dot plot
+
 ## Version 0.8.1
 
 - command line output improved: description of data more elaborate

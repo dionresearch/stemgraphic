@@ -915,7 +915,7 @@ def stem_graphic(
         if flip_axes:
             ax.set_title(title, y=title_offset)
         else:
-            ax.set_title(title, x=title_offset)
+            ax.set_title(title, loc='center')
 
     # Offsets
     offset = 0
@@ -1289,7 +1289,13 @@ def stem_graphic(
     else:
         # ax.plot(0, total_height)
         ax.plot(total_width, 0)
-    fig.tight_layout()
+
+    # This is needed due to a warning we have no control over.
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        fig.tight_layout()
+
     if figure_only:
         return fig, ax
     else:
