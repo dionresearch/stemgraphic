@@ -305,6 +305,7 @@ def stem_dot(
     persistence=None,
     random_state=None,
     scale=None,
+    symmetric=False,
     trim=False,
     unit="",
     zoom=None,
@@ -325,6 +326,7 @@ def stem_dot(
     :param persistence: filename. save sampled data to disk, either as pickle (.pkl) or csv (any other extension)
     :param random_state: initial random seed for the sampling process, for reproducible research
     :param scale: force a specific scale for building the plot. Defaults to None (automatic).
+    :param symmetric: if True, dot plot will be distributed on both side of a center line
     :param trim: ranges from 0 to 0.5 (50%) to remove from each end of the data set, defaults to None
     :param unit: specify a string for the unit ('$', 'Kg'...). Used for outliers and for legend, defaults to ''
     :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
@@ -354,11 +356,16 @@ def stem_dot(
         )
 
     ordered_rows = rows if asc else rows[::-1]
+    max_len = len(max(ordered_rows, key=len))
     dot_rows = []
     for row in ordered_rows:
         try:
             st, lf = row.split("|")
-            dot_rows.append("{}|{}".format(st, marker * len(lf)))
+            if symmetric:
+                # pad spaces between the | and dots
+                dot_rows.append("{}|{}{}".format(st, ' ' * int((max_len - len(lf))/2 - 1), marker * (len(lf) - 1)))
+            else:
+                dot_rows.append("{}|{}".format(st, marker * (len(lf) - 1)))
         except ValueError:
             # no pipe in row, print as is
             dot_rows.append(row)

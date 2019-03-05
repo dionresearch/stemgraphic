@@ -1,5 +1,6 @@
 """Handy aliases for stem_graphic options."""
 from .graphic import stem_graphic
+from .text import stem_dot
 
 
 def stem_hist(
@@ -114,3 +115,15 @@ def stem_line(
         secondary_plot=secondary_plot,
         underline_color=color,
     )
+
+
+def stem_symmetric_dot(x, **kw_args):
+    """stem_symmetric_dot builds a symmetric stem dot plot
+
+
+    :param x:  list, numpy array, time series, pandas or dask dataframe
+    :param kw_args:
+    :return:
+    """
+    kw_args["symmetric"] = True
+    return stem_dot(x, **kw_args)
