@@ -130,6 +130,10 @@ def stem_symmetric_dot(x, **kw_args):
 
             stem_symmetric_dot(diamonds.price)
 
+    **Output**:
+
+        .. sourcecode:: python
+
             326
                 ¡
               0 | ●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
