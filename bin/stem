@@ -15,7 +15,7 @@ Options:
     -d           describe the data
     -f           force dask
     -k <file>    persist sample to file (.csv, .pkl)
-    -o <file>    output file (.txt, .png)
+    -o <file>    output file (.txt, .png) or stdout
     -p <percent> trim data on both ends (ex: 0.2)
     -s <server>  head node for distributed cluster
     -t <type>    alternate type of distribution plot
@@ -25,11 +25,23 @@ Options:
 """
 from datetime import datetime
 import os
+from warnings import warn
 
 from docopt import docopt
+import matplotlib
+matplotlib.rcParams["backend"]="Agg"
+from matplotlib import pyplot as plt
 import pandas as pd
+from stemgraphic.num import (
+    heatmatrix,
+    text_heatmap,
+    text_dot,
+    text_hist,
+    stem_tally,
+    stem_text
+)
 from stemgraphic import (
-    stem_text,
+    heatmap,
     stem_graphic,
     stem_dot,
     stem_hist,
@@ -38,18 +50,30 @@ from stemgraphic import (
     dd,
 )
 from stemgraphic.helpers import na_count
+try:
+    from stemgraphic.helpers import savefig
+    stdout = True
+except ImportError:
+    warn('No sixel graphic support')
+    stdout = None
 
 type_to_alias = {
     "dot": stem_dot,
+    "text_heatmap": text_heatmap,
+    "heatmap": heatmap,
+    "heatmatrix": heatmatrix,
     "hist": stem_hist,
     "graphic": stem_graphic,
     "kde": stem_kde,
     "line": stem_line,
+    "tally": stem_tally,
     "text": stem_text,
+    "text_dot": text_dot,
+    "text_hist": text_hist,
 }
 
 if __name__ == "__main__":
-    arguments = docopt(__doc__, version="Stemgraphic 0.8.2")
+    arguments = docopt(__doc__, version="Stemgraphic 0.8.3")
     filename = arguments["<input>"]
 
     alpha = False
@@ -80,17 +104,47 @@ if __name__ == "__main__":
             print(client.ncores())
     else:
         data_frame = pd
+    try:
+        cols = int(arguments["-c"])
+    except ValueError:
+        cols = arguments["-c"]
+        print(cols)
+    except TypeError:
+        pass
     if filename[-4:] in ("xlsx", ".xls"):
-        df = pd.read_excel(filename)  # no way an excel sheet needs dask
+        if arguments["-c"] is not None:
+            df = pd.read_excel(filename,  usecols=[cols])
+        else:
+            df = pd.read_excel(filename)  # no way an excel sheet needs dask
     elif filename[-4:] == ".tsv":
         df = data_frame.read_table(filename)
     else:
         if arguments["-c"] is not None:
-            df = data_frame.read_csv(filename, usecols=[int(arguments["-c"])])
+            df = data_frame.read_csv(filename, usecols=[cols])
+            print(df.dtypes)
             if df.dtypes[0] == "object":
                 print("Specified column is an object, trying stemgraphic.alpha.")
-                from stemgraphic.alpha import stem_graphic, stem_text
+                from stemgraphic.alpha import (
+                    stem_graphic,
+                    stem_text,
+                    text_heatmap,
+                    heatmatrix
+                )
 
+                type_to_alias = {
+                    "dot": stem_dot,
+                    "text_heatmap": text_heatmap,
+                    "heatmap": heatmap,
+                    "heatmatrix": heatmatrix,
+                    "hist": stem_hist,
+                    "graphic": stem_graphic,
+                    "kde": stem_kde,
+                    "line": stem_line,
+                    "tally": stem_tally,
+                    "text": stem_text,
+                    "text_dot": text_dot,
+                    "text_hist": text_hist,
+                }
                 alpha = True
         else:
             df = data_frame.read_csv(filename)
@@ -111,7 +165,10 @@ if __name__ == "__main__":
         fig, ax = type_to_alias.get(arguments.get("-t", "graphic"), stem_graphic)(
             df, trim=trim, flip_axes=wide
         )
-        fig.savefig(arguments["-o"])
+        if arguments["-o"] == 'stdout' and stdout:
+            savefig(plt)
+        else:
+            fig.savefig(arguments["-o"])
     else:
         if alpha:
             type_to_alias.get(arguments.get("-t", "text"), stem_text)(

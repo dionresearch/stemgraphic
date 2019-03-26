@@ -42,6 +42,39 @@ or from this cloned repository, in the package root:
 
 # Latest changes
 
+## Version 0.8.3
+
+- text mode heatmatrix
+- text mode heatmap (heatmatrix without 0 values, compact format)
+- symmetric stem_dot option to center the dots
+- stem_symmetric_dot alias
+- improved documentation
+- stem_hist, text histogram
+- stem_tally, text tally chart
+- charset support for stem_text
+- charset support for heatmap, heatmatrix
+- heatmap for alpha
+- heatmatrix for alpha
+- unicode digit charsets added:
+     'arabic',
+     'arabic_r',
+     'bold',
+     'circled',
+     'default',
+     'doublestruck',
+     'fullwidth',
+     'gurmukhi',
+     'mono',
+     'nko',
+     'rod',
+     'roman',
+     'sans',
+     'sansbold',
+     'square',
+     'subscript',
+     'tamil'
+
+
 
 ## Version 0.8.2
 
