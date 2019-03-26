@@ -37,7 +37,11 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from .helpers import stack_columns, CHAR_FILTER, LETTERS, NON_ALPHA
+from .helpers import (
+    stack_columns, CHAR_FILTER, LETTERS, NON_ALPHA,
+    available_charsets, available_alpha_charsets,
+    translate_representation, translate_alpha_representation
+)
 
 
 def add_missing_letters(mat, stem_order, leaf_order, letters=None):
@@ -653,7 +657,7 @@ def ngram_data(
             x_s = x.sample(n=display, random_state=random_state).reset_index()
     else:
         try:
-            x = df if column is None else df[column]
+            x = pd.DataFrame({"word": df}) if column is None else pd.DataFrame({"word": df[column]})
             if reverse:
                 x = x.str[::-1]
         except KeyError:
@@ -1478,6 +1482,7 @@ def stem_text(
     binary=False,
     break_on=None,
     caps=True,
+    charset=None,
     column=None,
     compact=False,
     display=750,
@@ -1586,10 +1591,20 @@ def stem_text(
                 argsh = (cnt, val, low) if aggr else (val, low)
         else:
             argsl = (cnt, val, leaves) if aggr else (val, leaves)
-        print(mask.format(*argsl))
+
+        if charset:
+            if charset not in available_alpha_charsets():
+                warn("charset must be one of {}".format(available_alpha_charsets()))
+                return
+            print(translate_alpha_representation(mask.format(*argsl), charset=charset))
+        else:
+            print(mask.format(*argsl))
         if break_on:
-            # noinspection PyUnboundLocalVariable
-            print(mask.format(*argsh))
+            if charset:
+                print(translate_alpha_representation(mask.format(*argsh), charset=charset))
+            else:
+                # noinspection PyUnboundLocalVariable
+                print(mask.format(*argsh))
 
     if legend_pos is not None and legend_pos != "top":
         print(
@@ -2386,6 +2401,170 @@ def sunburst(
                 pol_ax.plot((np.pi, np.pi), (0, 1.02), color="r")
 
     return pol_ax, x
+
+
+def heatmatrix(
+    src,
+    alpha_only=False,
+    caps=False,
+    charset=None,
+    column=None,
+    compact=True,  # NOQA
+    display=None,
+    flip_axes=None,
+    leaf_order=1,
+    leaf_skip=0,
+    outliers=None,
+    persistence=None,
+    random_state=None,
+    scale=None,
+    stem_order=1,
+    stem_skip=0,
+    stop_words=None,
+    trim=None,
+    trim_blank=None,
+    unit='',
+    zero_blank=True,
+    zoom=None,
+):
+    """ The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
+     they are left in their respective columns. Row 'a' and Column 'b' would have the count of words starting
+     with 'ab'. The heatmap is useful to look at patterns. For distribution, stem\_graphic is better suited.
+
+    :param src: string, filename, url, list, numpy array, time series, pandas or dask dataframe
+    :param alpha_only: only use stems from a-z alphabet
+    :param caps: bool, True to be case sensitive
+    :param charset:
+    :param column: specify which column (string or number) of the dataframe to use,
+                   else the first is selected
+    :param compact: remove empty stems
+    :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param flip_axes: wide format
+    :param leaf_order: how many leaf characters per data point to display, defaults to 1
+    :param leaf_skip: how many leaf characters to skip, defaults to 0 - useful w/shared bigrams: 'wol','wor','woo'
+    :param outliers: for compatibility with other text plots
+    :param persistence: filename. save sampled data to disk, either as pickle (.pkl) or csv (any other extension)
+    :param random_state: initial random seed for the sampling process, for reproducible research
+    :param stem_order: how many stem characters per data point to display, defaults to 1
+    :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
+    :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
+    :param scale: force a specific scale for building the plot. Defaults to None (automatic).
+    :param trim: ranges from 0 to 0.5 (50%) to remove from each end of the data set, defaults to None
+    :param trim_blank: remove the blank between the delimiter and the first leaf, defaults to True
+    :param unit:  specify a string for the unit ('$', 'Kg'...). Used for outliers and for legend, defaults to ''
+    :param zero_blank: replace zero digit with space
+    :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
+    :return: count matrix, scale
+    """
+
+    _, alpha_matrix, _ = ngram_data(
+        src,
+        alpha_only=alpha_only,
+        caps=caps,
+        compact=compact,
+        display=display,
+        leaf_order=leaf_order,
+        leaf_skip=leaf_skip,
+        rows_only=False,
+        random_state=random_state,
+        stem_order=stem_order,
+        stem_skip=stem_skip,
+        stop_words=stop_words,
+    )
+    if not compact:
+        alpha_matrix.word = add_missing_letters(
+            alpha_matrix.word, stem_order, leaf_order
+        )
+    if isinstance(src, str):
+        title = "stem-and-leaf heatmap for {}".format(src)
+    else:
+        title = "stem-and-leaf heatmap"
+
+    print(title)
+    if flip_axes:
+        alpha_matrix_ngram = alpha_matrix['ngram'].T
+    else:
+        alpha_matrix_ngram = alpha_matrix['ngram']
+    if charset:
+        if charset not in available_charsets():
+            warn("charset must be one of {}".format(available_charsets()))
+            return
+        alpha_matrix_text = str(alpha_matrix_ngram).split('\n')
+        translated_alpha_matrix = [
+            translate_representation(row, charset=charset, index=i, zero_blank=zero_blank) for i, row in
+            enumerate(alpha_matrix_text)]
+        print('\n'.join(translated_alpha_matrix))
+    else:
+        print(alpha_matrix_ngram)
+    return alpha_matrix
+
+
+def text_heatmap(
+    df,
+    caps=True,
+    charset=None,
+    column=None,
+    compact=True,
+    display=900,
+    flip_axes=False,
+    leaf_order=1,
+    outliers=None,
+    persistence=None,
+    random_state=None,
+    scale=None,
+    trim=False,
+    trim_blank=True,
+    unit="",
+    zero_blank=True,
+    zoom=None,
+):
+    """ text heatmap
+
+        The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
+        they are left in their respective columns. Row '42' and Column '7' would have the count of numbers starting
+        with '427' of the given scale.
+
+        The heatmap is useful to look at patterns. For distribution, stem_graphic is better suited.
+
+    :param df: list, numpy array, time series, pandas or dask dataframe
+    :param column: specify which column (string or number) of the dataframe to use,
+                   else the first numerical is selected
+    :param compact: do not display empty stem rows (with no leaves), defaults to False
+    :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param flip_axes: wide format
+    :param leaf_order: how many leaf digits per data point to display, defaults to 1
+    :param outliers: for compatibility with other text plots
+    :param persistence: filename. save sampled data to disk, either as pickle (.pkl) or csv (any other extension)
+    :param random_state: initial random seed for the sampling process, for reproducible research
+    :param scale: force a specific scale for building the plot. Defaults to None (automatic).
+    :param trim: ranges from 0 to 0.5 (50%) to remove from each end of the data set, defaults to None
+    :param trim_blank: remove the blank between the delimiter and the first leaf, defaults to True
+    :param unit:  specify a string for the unit ('$', 'Kg'...). Used for outliers and for legend, defaults to ''
+    :param zero_blank: replace zero digit with space
+    :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
+    :return: count matrix, scale
+    """
+    if charset is None:
+        charset = 'default'
+    return heatmatrix(
+        df,
+        caps=caps,
+        charset=charset,
+        column=column,
+        compact=compact,
+        display=display,
+        flip_axes=flip_axes,
+        leaf_order=leaf_order,
+        outliers=outliers,
+        persistence=persistence,
+        random_state=random_state,
+        scale=scale,
+        trim=trim,
+        trim_blank=trim_blank,
+        unit=unit,
+        zero_blank=zero_blank,
+        zoom=zoom
+    )
 
 
 # noinspection PyPep8Naming,PyTypeChecker,PyTypeChecker
