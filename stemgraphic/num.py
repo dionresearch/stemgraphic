@@ -21,7 +21,7 @@ from .text import (
     stem_dot as text_dot,
     stem_hist as text_hist,
     stem_tally,
-    stem_text
+    stem_text,
 )
 
 from .graphic import density_plot, heatmap, leaf_scatter, stem_graphic

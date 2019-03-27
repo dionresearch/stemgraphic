@@ -38,9 +38,14 @@ import pandas as pd
 import seaborn as sns
 
 from .helpers import (
-    stack_columns, CHAR_FILTER, LETTERS, NON_ALPHA,
-    available_charsets, available_alpha_charsets,
-    translate_representation, translate_alpha_representation
+    stack_columns,
+    CHAR_FILTER,
+    LETTERS,
+    NON_ALPHA,
+    available_charsets,
+    available_alpha_charsets,
+    translate_representation,
+    translate_alpha_representation,
 )
 
 
@@ -657,7 +662,11 @@ def ngram_data(
             x_s = x.sample(n=display, random_state=random_state).reset_index()
     else:
         try:
-            x = pd.DataFrame({"word": df}) if column is None else pd.DataFrame({"word": df[column]})
+            x = (
+                pd.DataFrame({"word": df})
+                if column is None
+                else pd.DataFrame({"word": df[column]})
+            )
             if reverse:
                 x = x.str[::-1]
         except KeyError:
@@ -1601,7 +1610,9 @@ def stem_text(
             print(mask.format(*argsl))
         if break_on:
             if charset:
-                print(translate_alpha_representation(mask.format(*argsh), charset=charset))
+                print(
+                    translate_alpha_representation(mask.format(*argsh), charset=charset)
+                )
             else:
                 # noinspection PyUnboundLocalVariable
                 print(mask.format(*argsh))
@@ -2423,7 +2434,7 @@ def heatmatrix(
     stop_words=None,
     trim=None,
     trim_blank=None,
-    unit='',
+    unit="",
     zero_blank=True,
     zoom=None,
 ):
@@ -2482,18 +2493,21 @@ def heatmatrix(
 
     print(title)
     if flip_axes:
-        alpha_matrix_ngram = alpha_matrix['ngram'].T
+        alpha_matrix_ngram = alpha_matrix["ngram"].T
     else:
-        alpha_matrix_ngram = alpha_matrix['ngram']
+        alpha_matrix_ngram = alpha_matrix["ngram"]
     if charset:
         if charset not in available_charsets():
             warn("charset must be one of {}".format(available_charsets()))
             return
-        alpha_matrix_text = str(alpha_matrix_ngram).split('\n')
+        alpha_matrix_text = str(alpha_matrix_ngram).split("\n")
         translated_alpha_matrix = [
-            translate_representation(row, charset=charset, index=i, zero_blank=zero_blank) for i, row in
-            enumerate(alpha_matrix_text)]
-        print('\n'.join(translated_alpha_matrix))
+            translate_representation(
+                row, charset=charset, index=i, zero_blank=zero_blank
+            )
+            for i, row in enumerate(alpha_matrix_text)
+        ]
+        print("\n".join(translated_alpha_matrix))
     else:
         print(alpha_matrix_ngram)
     return alpha_matrix
@@ -2545,7 +2559,7 @@ def text_heatmap(
     :return: count matrix, scale
     """
     if charset is None:
-        charset = 'default'
+        charset = "default"
     return heatmatrix(
         df,
         caps=caps,
@@ -2563,7 +2577,7 @@ def text_heatmap(
         trim_blank=trim_blank,
         unit=unit,
         zero_blank=zero_blank,
-        zoom=zoom
+        zoom=zoom,
     )
 
 
