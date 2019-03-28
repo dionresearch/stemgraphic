@@ -10,7 +10,7 @@ and **text** as input.
 
 A typical stem_graphic output:
 
-  [stem_graphic example](https://github.com/fdion/stemgraphic/raw/master/png/test_rosetta.png)
+  ![stem_graphic example](https://github.com/dionresearch/stemgraphic/blob/master/png/test_rosetta.png?raw=true)
 
 For an in depth look at the algorithms and the design of stemgraphic, see
 
@@ -87,11 +87,11 @@ stemgraphic comes with a command line tool:
 
 A typical command line output:
 
-  [text heatmap example](https://github.com/fdion/stemgraphic/raw/master/png/text_heatmap_in_terminal.png)
+  ![text heatmap example](https://github.com/dionresearch/stemgraphic/raw/master/png/text_heatmap_in_terminal.png)
     
 An example Sixel graphics in the terminal:
 
-  [heatmap example in terminal](https://github.com/fdion/stemgraphic/raw/master/png/graphic_heatmap_in_terminal.png)
+  ![heatmap example in terminal](https://github.com/dionresearch/stemgraphic/raw/master/png/graphic_heatmap_in_terminal.png)
 
 The supported graphic chart types (-t):
 

@@ -12,8 +12,10 @@ tool). It also supports **categorical** and **text** as input.
 
 A typical stem\_graphic output:
 
-`stem\_graphic
-example <https://github.com/fdion/stemgraphic/raw/master/png/test_rosetta.png>`__
+.. figure:: https://github.com/dionresearch/stemgraphic/blob/master/png/test_rosetta.png?raw=true
+   :alt: stem\_graphic example
+
+   stem\_graphic example
 
 For an in depth look at the algorithms and the design of stemgraphic,
 see
@@ -103,13 +105,17 @@ stemgraphic comes with a command line tool:
 
 A typical command line output:
 
-`text heatmap
-example <https://github.com/fdion/stemgraphic/raw/master/png/text_heatmap_in_terminal.png>`__
+.. figure:: https://github.com/dionresearch/stemgraphic/raw/master/png/text_heatmap_in_terminal.png
+   :alt: text heatmap example
+
+   text heatmap example
 
 An example Sixel graphics in the terminal:
 
-`heatmap example in
-terminal <https://github.com/fdion/stemgraphic/raw/master/png/graphic_heatmap_in_terminal.png>`__
+.. figure:: https://github.com/dionresearch/stemgraphic/raw/master/png/graphic_heatmap_in_terminal.png
+   :alt: heatmap example in terminal
+
+   heatmap example in terminal
 
 The supported graphic chart types (-t):
 
