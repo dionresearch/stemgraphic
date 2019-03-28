@@ -10,7 +10,7 @@ and **text** as input.
 
 A typical stem_graphic output:
 
-  [stem_graphic example](https://github.com/fdion/stemgraphic/raw/master/png/test_rosetta.png)
+  ![stem_graphic example](https://github.com/dionresearch/stemgraphic/blob/master/png/test_rosetta.png?raw=true)
 
 For an in depth look at the algorithms and the design of stemgraphic, see
 
@@ -29,7 +29,9 @@ See also:
 
 Stemgraphic requires docopt, matplotlib and pandas. Optionally, having Scipy installed will give you secondary plots 
 and Dask (see requirements_dev.txt for all needed to run all the functional tests) will allow for out of core, big data
-visualization.
+visualization. See more python packages that can be installed for more functionality in the section
+"Optional Requirements".
+
 
 Installation is simple:
 
@@ -38,9 +40,111 @@ Installation is simple:
 or from this cloned repository, in the package root:
 
     python3 setup.py install
+    
+If you only have python3, pip3 and python3 are probably going to be pip and python. At this time,
+we do not have a conda package yet, but you can install everything else with conda, and then pip install stemgraphic.
 
+# Optional requirements
+
+You can pip install these modules for additional functionality:
+
+- dask (for distributed computing)
+- pysixel (for graphics in the text console)
+- python-levenshtein (for distance metric)
+- scipy (for marginal plots)
+
+
+# Command line
+
+stemgraphic comes with a command line tool:
+
+    stem -h
+
+    Stem.
+    
+    Stem and leaf plot from a csv or excel spreadsheet using best defaults. Can do text (text and dot) or graphic (kde,
+    graphic, hist, line).
+    
+    Usage:
+        stem <input> [-c <column>] [-d] [-f] [-k <file>] [-o <file>] [-p <percent>] [-r <random>] [-s <server>] [-t <type>] [-u] [-w]
+        stem -h | --help
+        stem --version
+    
+    Options:
+        -h --help    Show this screen.
+        -c <column>  column index
+        -d           describe the data
+        -f           force dask
+        -k <file>    persist sample to file (.csv, .pkl)
+        -o <file>    output file (.txt, .png) or stdout
+        -p <percent> trim data on both ends (ex: 0.2)
+        -r <random>  random_state seed (ex: 42)
+        -s <server>  head node for distributed cluster
+        -t <type>    alternate type of distribution plot
+        -u           use all data (default: 300 on text, 900 on graphics)
+        -w           wide format (horizontal)
+        --version
+
+A typical command line output:
+
+  ![text heatmap example](https://github.com/dionresearch/stemgraphic/raw/master/png/text_heatmap_in_terminal.png)
+    
+An example Sixel graphics in the terminal:
+
+  ![heatmap example in terminal](https://github.com/dionresearch/stemgraphic/raw/master/png/graphic_heatmap_in_terminal.png)
+
+The supported graphic chart types (-t):
+
+- dot
+- graphic (default - stem_graphic plot)
+- heatmap
+- hist
+- kde
+- line
+
+The supported text chart types (-t):
+
+- heatmatrix
+- text (stem_text plot)
+- text_dot
+- text_hist
+- text_heatmap
+- tally
 
 # Latest changes
+
+## Version 0.8.3
+
+- text mode heatmatrix
+- text mode heatmap (heatmatrix without 0 values, compact format)
+- symmetric stem_dot option to center the dots
+- stem_symmetric_dot alias
+- improved documentation
+- stem_hist, text histogram
+- stem_tally, text tally chart
+- charset support for stem_text
+- charset support for heatmap, heatmatrix
+- heatmap for alpha
+- heatmatrix for alpha
+- unicode digit charsets added:
+     'arabic',
+     'arabic_r',
+     'bold',
+     'circled',
+     'default',
+     'doublestruck',
+     'fullwidth',
+     'gurmukhi',
+     'mono',
+     'nko',
+     'rod',
+     'roman',
+     'sans',
+     'sansbold',
+     'square',
+     'subscript',
+     'tamil'
+
 
 
 ## Version 0.8.2

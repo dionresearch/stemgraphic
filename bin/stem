@@ -5,7 +5,7 @@ Stem and leaf plot from a csv or excel spreadsheet using best defaults. Can do t
 graphic, hist, line).
 
 Usage:
-    stem <input> [-c <column>] [-d] [-f] [-k <file>] [-o <file>] [-p <percent>] [-s <server>] [-t <type>] [-w]
+    stem <input> [-c <column>] [-d] [-f] [-k <file>] [-o <file>] [-p <percent>] [-r <random>] [-s <server>] [-t <type>] [-u] [-w]
     stem -h | --help
     stem --version
 
@@ -15,21 +15,35 @@ Options:
     -d           describe the data
     -f           force dask
     -k <file>    persist sample to file (.csv, .pkl)
-    -o <file>    output file (.txt, .png)
+    -o <file>    output file (.txt, .png) or stdout
     -p <percent> trim data on both ends (ex: 0.2)
+    -r <random>  random_state seed (ex: 42)
     -s <server>  head node for distributed cluster
     -t <type>    alternate type of distribution plot
+    -u           use all data (default: 300 on text, 900 on graphics)
     -w           wide format (horizontal)
     --version
 
 """
 from datetime import datetime
 import os
+from warnings import warn
 
 from docopt import docopt
+import matplotlib
+matplotlib.rcParams["backend"]="Agg"
+from matplotlib import pyplot as plt
 import pandas as pd
+from stemgraphic.num import (
+    heatmatrix,
+    text_heatmap,
+    text_dot,
+    text_hist,
+    stem_tally,
+    stem_text
+)
 from stemgraphic import (
-    stem_text,
+    heatmap,
     stem_graphic,
     stem_dot,
     stem_hist,
@@ -38,18 +52,16 @@ from stemgraphic import (
     dd,
 )
 from stemgraphic.helpers import na_count
+try:
+    from stemgraphic.helpers import savefig
+    stdout = True
+except ImportError:
+    warn('No sixel graphic support')
+    stdout = None
 
-type_to_alias = {
-    "dot": stem_dot,
-    "hist": stem_hist,
-    "graphic": stem_graphic,
-    "kde": stem_kde,
-    "line": stem_line,
-    "text": stem_text,
-}
 
 if __name__ == "__main__":
-    arguments = docopt(__doc__, version="Stemgraphic 0.8.2")
+    arguments = docopt(__doc__, version="Stemgraphic 0.8.3")
     filename = arguments["<input>"]
 
     alpha = False
@@ -80,20 +92,59 @@ if __name__ == "__main__":
             print(client.ncores())
     else:
         data_frame = pd
+    try:
+        cols = int(arguments["-c"])
+    except ValueError:
+        cols = arguments["-c"]
+        print(cols)
+    except TypeError:
+        pass
     if filename[-4:] in ("xlsx", ".xls"):
-        df = pd.read_excel(filename)  # no way an excel sheet needs dask
+        if arguments["-c"] is not None:
+            df = pd.read_excel(filename,  usecols=[cols])
+        else:
+            df = pd.read_excel(filename)  # no way an excel sheet needs dask
     elif filename[-4:] == ".tsv":
         df = data_frame.read_table(filename)
     else:
         if arguments["-c"] is not None:
-            df = data_frame.read_csv(filename, usecols=[int(arguments["-c"])])
-            if df.dtypes[0] == "object":
-                print("Specified column is an object, trying stemgraphic.alpha.")
-                from stemgraphic.alpha import stem_graphic, stem_text
-
-                alpha = True
+            df = data_frame.read_csv(filename, usecols=[cols])
+            print(df.dtypes)
         else:
             df = data_frame.read_csv(filename)
+    if df.dtypes[0] == "object":
+        print("Specified column is an object, trying stemgraphic.alpha.")
+        from stemgraphic.alpha import (
+            stem_graphic,
+            stem_text,
+            text_heatmap,
+            heatmap,
+            heatmatrix
+        )
+
+        alpha = True
+
+    type_to_alias = {
+        "dot": stem_dot,
+        "text_heatmap": text_heatmap,
+        "heatmap": heatmap,
+        "heatmatrix": heatmatrix,
+        "hist": stem_hist,
+        "graphic": stem_graphic,
+        "kde": stem_kde,
+        "line": stem_line,
+        "tally": stem_tally,
+        "text": stem_text,
+        "text_dot": text_dot,
+        "text_hist": text_hist,
+    }
+
+    if arguments.get("-u"):
+        display = df.shape[0]
+
+    if arguments["-w"]:
+        pd.set_option('display.width', 1000)
+
     if arguments["-d"]:
         print(datetime.today())
         res = df.describe(include="all", percentiles=[0.1, 0.25, 0.5, 0.75, 0.9]).T
@@ -107,17 +158,32 @@ if __name__ == "__main__":
         pd.options.display.float_format = "{:,}".format
         print(res)
 
+    if arguments["-t"] in ('text_heatmap', 'heatmap', 'heatmatrix'):
+        pd.options.display.float_format = '{:,.0f}'.format
+        pd.set_option('display.width', 1000)
+
+    random_state = arguments.get("-r", None)
+    if random_state:
+        random_state = int(random_state)
     if arguments["-o"]:
-        fig, ax = type_to_alias.get(arguments.get("-t", "graphic"), stem_graphic)(
-            df, trim=trim, flip_axes=wide
+        res = type_to_alias.get(arguments.get("-t", "graphic"), stem_graphic)(
+            df, trim=trim, flip_axes=wide, random_state=random_state, display=display
         )
-        fig.savefig(arguments["-o"])
+        fig = res[0]
+        if arguments["-t"] == 'heatmap':
+            ax = res[1]
+            fig = ax.get_figure()
+        if arguments["-o"] == 'stdout' and stdout:
+            savefig(plt)
+        else:
+            fig.savefig(arguments["-o"])
     else:
         if alpha:
             type_to_alias.get(arguments.get("-t", "text"), stem_text)(
-                df.iloc[:, 0].tolist(), caps=False
+                df.iloc[:, 0].tolist(), caps=False, flip_axes=wide, random_state=random_state, display=display
             )
         else:
             type_to_alias.get(arguments.get("-t", "text"), stem_text)(
-                df, outliers=True, persistence=persistence, trim=trim, flip_axes=wide
+                df, outliers=True, persistence=persistence, trim=trim,
+                flip_axes=wide, random_state=random_state, display=display
             )

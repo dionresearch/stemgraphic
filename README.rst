@@ -10,10 +10,12 @@ completely text-based. Stemgraphic is a very easy to use python package
 providing a solution to these limitations (no size limit, graphical
 tool). It also supports **categorical** and **text** as input.
 
-A typical stem_graphic output:
+A typical stem\_graphic output:
 
-`stem_graphic
-example <https://github.com/fdion/stemgraphic/raw/master/png/test_rosetta.png>`__
+.. figure:: https://github.com/dionresearch/stemgraphic/blob/master/png/test_rosetta.png?raw=true
+   :alt: stem\_graphic example
+
+   stem\_graphic example
 
 For an in depth look at the algorithms and the design of stemgraphic,
 see
@@ -27,17 +29,18 @@ Documentation is available as pdf
 
 The official website of stemgraphic is: http://stemgraphic.org
 
-See also:
-`Are you smarter than a fifth grader?
- <https://www.linkedin.com/pulse/you-smarter-than-fifth-grader-francois-dion/>`__
+See also: `Are you smarter than a fifth
+grader? <https://www.linkedin.com/pulse/you-smarter-than-fifth-grader-francois-dion/>`__
 
 Installation
 ============
 
 Stemgraphic requires docopt, matplotlib and pandas. Optionally, having
 Scipy installed will give you secondary plots and Dask (see
-requirements_dev.txt for all needed to run all the functional tests)
-will allow for out of core, big data visualization.
+requirements\_dev.txt for all needed to run all the functional tests)
+will allow for out of core, big data visualization. See more python
+packages that can be installed for more functionality in the section
+"Optional Requirements".
 
 Installation is simple:
 
@@ -51,41 +54,149 @@ or from this cloned repository, in the package root:
 
     python3 setup.py install
 
+If you only have python3, pip3 and python3 are probably going to be pip
+and python. At this time, we do not have a conda package yet, but you
+can install everything else with conda, and then pip install
+stemgraphic.
+
+Optional requirements
+=====================
+
+You can pip install these modules for additional functionality:
+
+-  dask (for distributed computing)
+-  pysixel (for graphics in the text console)
+-  python-levenshtein (for distance metric)
+-  scipy (for marginal plots)
+
+Command line
+============
+
+stemgraphic comes with a command line tool:
+
+::
+
+    stem -h
+
+    Stem.
+
+    Stem and leaf plot from a csv or excel spreadsheet using best defaults. Can do text (text and dot) or graphic (kde,
+    graphic, hist, line).
+
+    Usage:
+        stem <input> [-c <column>] [-d] [-f] [-k <file>] [-o <file>] [-p <percent>] [-r <random>] [-s <server>] [-t <type>] [-u] [-w]
+        stem -h | --help
+        stem --version
+
+    Options:
+        -h --help    Show this screen.
+        -c <column>  column index
+        -d           describe the data
+        -f           force dask
+        -k <file>    persist sample to file (.csv, .pkl)
+        -o <file>    output file (.txt, .png) or stdout
+        -p <percent> trim data on both ends (ex: 0.2)
+        -r <random>  random_state seed (ex: 42)
+        -s <server>  head node for distributed cluster
+        -t <type>    alternate type of distribution plot
+        -u           use all data (default: 300 on text, 900 on graphics)
+        -w           wide format (horizontal)
+        --version
+
+A typical command line output:
+
+.. figure:: https://github.com/dionresearch/stemgraphic/raw/master/png/text_heatmap_in_terminal.png
+   :alt: text heatmap example
+
+   text heatmap example
+
+An example Sixel graphics in the terminal:
+
+.. figure:: https://github.com/dionresearch/stemgraphic/raw/master/png/graphic_heatmap_in_terminal.png
+   :alt: heatmap example in terminal
+
+   heatmap example in terminal
+
+The supported graphic chart types (-t):
+
+-  dot
+-  graphic (default - stem\_graphic plot)
+-  heatmap
+-  hist
+-  kde
+-  line
+
+The supported text chart types (-t):
+
+-  heatmatrix
+-  text (stem\_text plot)
+-  text\_dot
+-  text\_hist
+-  text\_heatmap
+-  tally
+
 Latest changes
 ==============
+
+Version 0.8.3
+-------------
+
+-  text mode heatmatrix
+-  text mode heatmap (heatmatrix without 0 values, compact format)
+-  symmetric stem\_dot option to center the dots
+-  stem\_symmetric\_dot alias
+-  improved documentation
+-  stem\_hist, text histogram
+-  stem\_tally, text tally chart
+-  charset support for stem\_text
+-  charset support for heatmap, heatmatrix
+-  heatmap for alpha
+-  heatmatrix for alpha
+-  unicode digit charsets added: 'arabic', 'arabic\_r', 'bold',
+   'circled', 'default', 'doublestruck', 'fullwidth', 'gurmukhi',
+   'mono', 'nko', 'rod', 'roman', 'sans', 'sansbold', 'square',
+   'subscript', 'tamil'
+
+Version 0.8.2
+-------------
+
+-  bugfix on min/max values from command line
+-  silence warning from matplotlib on tight\_layout
+-  Alignment issue on title for back to back stem-and-leaf plots
+-  bugfix on dot plot number of dots
+-  Added symmetric dot plot option and alias since I was working on dot
+   plot
 
 Version 0.8.1
 -------------
 
-- command line output improved: description of data more elaborate
-- leaf_scatter plot added
-- stem_text support for flip_axes
-- stem_dot support flip_axes
-- stem_dot defaults marker to unicode circle
-- added support for dot for command line stem (stem -t dot)
-
+-  command line output improved: description of data more elaborate
+-  leaf\_scatter plot added
+-  stem\_text support for flip\_axes
+-  stem\_dot support flip\_axes
+-  stem\_dot defaults marker to unicode circle
+-  added support for dot for command line stem (stem -t dot)
 
 Version 0.7.5
 -------------
 
-- Bugfix for issue 12, -0 stem not showing in certain cases
+-  Bugfix for issue 12, -0 stem not showing in certain cases
 
 Version 0.7.4
 -------------
 
-- Bugfix for stem_text with plain list (df and numpy are ok)
-
+-  Bugfix for stem\_text with plain list (df and numpy are ok)
 
 Version 0.7.2
 -------------
 
-- Bugfix for secondary plot calculation
+-  Bugfix for secondary plot calculation
 
 Version 0.7.0
 -------------
 
-- Made Levenshtein module optional
-- Small Multiples support
+-  Made Levenshtein module optional
+-  Small Multiples support
 
 Version 0.6.2
 -------------
@@ -99,33 +210,33 @@ Version 0.6.1
    ax added)
 -  added quantize function (basically a round trip
    number->stem-and-leaf->number))
--  density_plot added for numerical values with stem-and-leaf
+-  density\_plot added for numerical values with stem-and-leaf
    quantization and sampling
--  density_plot also support multiple secondary plots like box, violin,
+-  density\_plot also support multiple secondary plots like box, violin,
    rug, strip
--  notebook demoing density_plot
+-  notebook demoing density\_plot
 -  notebook demoing comparison of violin, box and stem-and-leaf for
    certain distributions
 
 Version 0.6.0
 -------------
 
-Version bump to 0.6 due to order of params changing. Shouldn’t affect
+Version bump to 0.6 due to order of params changing. Shouldn't affect
 using named args
 
-Major code change and expansion for num.stem_graphic including: -
+Major code change and expansion for num.stem\_graphic including: -
 back-to-back stem-and-leaf plots - allows comparison of very skewed data
 - bug fix (rounding issue) due to python precision - better stem
 handling - alpha down to 10% for bars - median alpha can be specified -
 stems can be hidden - added title option, besides the legend
 
-Other changes: - More notebook examples - added leaf_skip, stem_skip to
-a few functions missing them - heatmap_grid bugfix - added reverse to a
-few functions missing it - improved documentation - matrix_difference
-ord param added added - ngram_data now properly defaults to case
-insensitive - switched magenta to ‘C4’ - compatible with mpl styles now
-- functions to read/write .npy and .pkl files - more unicode
-typographical glyphs added to the list of non alpha
+Other changes: - More notebook examples - added leaf\_skip, stem\_skip
+to a few functions missing them - heatmap\_grid bugfix - added reverse
+to a few functions missing it - improved documentation -
+matrix\_difference ord param added added - ngram\_data now properly
+defaults to case insensitive - switched magenta to 'C4' - compatible
+with mpl styles now - functions to read/write .npy and .pkl files - more
+unicode typographical glyphs added to the list of non alpha
 
 Version 0.5.3
 -------------
@@ -134,7 +245,7 @@ Version 0.5.3
 -  added 3rd source to compare (in 3d) with scatter plots
 -  more scatter plot fixes
 -  some warnings added to deal with 3d and log scale issues
--  added fig_xy to scatter - useful to quickly adjust figsize in a
+-  added fig\_xy to scatter - useful to quickly adjust figsize in a
    notebook
 -  added normalize, percentage and whole (integer) to scatter
 -  added alpha to scatter
@@ -150,7 +261,7 @@ Version 0.5.2
 Version 0.5.1
 -------------
 
--  stem_text legend fix
+-  stem\_text legend fix
 -  missed adding the code for scatter plots
 -  more notebooks
 
@@ -161,21 +272,19 @@ Major new release.
 
 -  All 0.4.0 private changes were merged
 -  new module stemgraphic.alpha:
-
-   -  n-gram support
-   -  stem_graphic supporting categorical
-   -  stem_graphic supporting text
-   -  stem_text supporting categorical
-   -  stem_text supporting text
-   -  stem command line supporting categorical when column specified
-   -  heatmap for n-grams
-   -  heatmap grid to compare multiple text sources
-   -  Frobenius norm on diff matrices
-   -  radar plot with Levenshtein distance
-   -  frequency plot (bar, barh, hist, area, pie)
-   -  sunburst char
-   -  interactive charts with cufflinks
-
+-  n-gram support
+-  stem\_graphic supporting categorical
+-  stem\_graphic supporting text
+-  stem\_text supporting categorical
+-  stem\_text supporting text
+-  stem command line supporting categorical when column specified
+-  heatmap for n-grams
+-  heatmap grid to compare multiple text sources
+-  Frobenius norm on diff matrices
+-  radar plot with Levenshtein distance
+-  frequency plot (bar, barh, hist, area, pie)
+-  sunburst char
+-  interactive charts with cufflinks
 -  new module stemgraphic.num to match .alpha
 -  stop word dictionaries for English, Spanish and French
 -  Massively improved documentation of modules and functions
@@ -207,7 +316,7 @@ Version 0.3.6
 -  Windows compatible bat file wrapper (stem.bat).
 
 -  Added full command line access to dask distributed server (-d, -s,
-   use file in ’’ when using glob / wildcard).
+   use file in '' when using glob / wildcard).
 
 -  For operations with dask, performance has been increased by 25% in
    this latest release, by doing a compute once of min, max and count

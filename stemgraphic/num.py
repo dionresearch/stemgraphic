@@ -13,6 +13,15 @@ The shorthand from previous versions of stemgraphic is still available and defau
 
 """
 
-from .text import quantize, stem_data, stem_dot, stem_text
+from .text import (
+    heatmatrix,
+    heatmap as text_heatmap,
+    quantize,
+    stem_data,
+    stem_dot as text_dot,
+    stem_hist as text_hist,
+    stem_tally,
+    stem_text,
+)
 
 from .graphic import density_plot, heatmap, leaf_scatter, stem_graphic

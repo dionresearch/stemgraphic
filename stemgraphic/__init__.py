@@ -12,7 +12,7 @@ A command line utility was installed along with the package, allowing to process
 files. See: stem -h
 """
 from .aliases import stem_hist, stem_kde, stem_line, stem_dot, stem_symmetric_dot
-from .graphic import stem_graphic
-from .text import stem_data, stem_dot, stem_text
+from .graphic import stem_graphic, heatmap
+from .text import stem_data, stem_text, heatmatrix
 from .helpers import dd
 from .stopwords import *

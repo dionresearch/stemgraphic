@@ -17,7 +17,9 @@ def stem_hist(
     outliers=False,
     trim=False,
 ):
-    """stem_hist builds a histogram matching the stem-and-leaf plot, with the numbers hidden, as shown on the
+    """ stem_hist
+
+    stem_hist builds a graphical histogram matching the stem-and-leaf plot, with the numbers hidden, as shown on the
     cover of the companion brochure.
 
     :param legend_pos:
@@ -118,11 +120,48 @@ def stem_line(
 
 
 def stem_symmetric_dot(x, **kw_args):
-    """stem_symmetric_dot builds a symmetric stem dot plot
+    """ stem_symmetric_dot
 
+    stem_symmetric_dot builds a symmetric stem dot plot
+
+    **Example**:
+
+        .. sourcecode:: python
+
+            stem_symmetric_dot(diamonds.price)
+
+    **Output**:
+
+        .. sourcecode:: python
+
+            326
+                ¡
+              0 | ●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
+              1 |            ●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
+              2 |                     ●●●●●●●●●●●●●●●●●●●●●●●●●●
+              3 |                    ●●●●●●●●●●●●●●●●●●●●●●●●●●●●
+              4 |                   ●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
+              5 |                       ●●●●●●●●●●●●●●●●●●●●●●●
+              6 |                        ●●●●●●●●●●●●●●●●●●●●
+              7 |                           ●●●●●●●●●●●●●●●
+              8 |                                 ●●●
+              9 |                              ●●●●●●●●
+             10 |                                ●●●●
+             11 |                               ●●●●●●●
+             12 |                               ●●●●●●
+             13 |                                 ●●
+             14 |                                 ●●
+             15 |                                 ●●●
+             16 |                                 ●●●
+             17 |                              ●●●●●●●●
+             18 |                                  ●
+                !
+            18823
+            Scale:
+            18|6 => 18.6x1000 = 18600.0
 
     :param x:  list, numpy array, time series, pandas or dask dataframe
-    :param kw_args:
+    :param kw_args: keyword args to stem_dot
     :return:
     """
     kw_args["symmetric"] = True
