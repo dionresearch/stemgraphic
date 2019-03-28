@@ -29,7 +29,9 @@ See also:
 
 Stemgraphic requires docopt, matplotlib and pandas. Optionally, having Scipy installed will give you secondary plots 
 and Dask (see requirements_dev.txt for all needed to run all the functional tests) will allow for out of core, big data
-visualization.
+visualization. See more python packages that can be installed for more functionality in the section
+"Optional Requirements".
+
 
 Installation is simple:
 
@@ -38,6 +40,18 @@ Installation is simple:
 or from this cloned repository, in the package root:
 
     python3 setup.py install
+    
+If you only have python3, pip3 and python3 are probably going to be pip and python. At this time,
+we do not have a conda package yet, but you can install everything else with conda, and then pip install stemgraphic.
+
+# Optional requirements
+
+You can pip install these modules for additional functionality:
+
+- dask (for distributed computing)
+- pysixel (for graphics in the text console)
+- python-levenshtein (for distance metric)
+- scipy (for marginal plots)
 
 
 # Latest changes
