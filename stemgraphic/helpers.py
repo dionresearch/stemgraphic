@@ -2,7 +2,6 @@
 
 Helper functions for stemgraphic.
 """
-import matplotlib.tri as tri
 from io import BytesIO
 import numpy as np
 import pandas as pd
@@ -223,6 +222,14 @@ def na_count(x, column=0):
 
 
 def npy_save(path, array):
+    """ npy_save
+
+    saves numpy array to npy file on disk.
+
+    :param path: path where to save npy file
+    :param array: numpy array
+    :return: path
+    """
     if path[-4:] != ".npy":
         path += ".npy"
     with open(path, "wb+") as f:
@@ -231,6 +238,13 @@ def npy_save(path, array):
 
 
 def npy_load(path):
+    """ npy_load
+
+    load numpy array (npy) file from disk.
+
+    :param path: path to pickle file
+    :return: numpy array
+    """
     if path[-4:] != ".npy":
         warn("Not a numpy NPY file.")
         return None
@@ -238,6 +252,14 @@ def npy_load(path):
 
 
 def pkl_save(path, array):
+    """ pkl_save
+
+    saves matrix or dataframe to pkl file on disk.
+
+    :param path: path where to save pickle file
+    :param array: matrix (array) or dataframe
+    :return: path
+    """
     if path[-4:] != ".pkl":
         path += ".pkl"
     with open(path, "wb+") as f:
@@ -246,6 +268,13 @@ def pkl_save(path, array):
 
 
 def pkl_load(path):
+    """ pkl_load
+
+    load matrix or dataframe pickle (pkl) file from disk.
+
+    :param path: path to pickle file
+    :return: matrix or dataframe
+    """
     if path[-4:] != ".pkl":
         warn("Not a PKL file.")
         return None
@@ -268,8 +297,15 @@ def percentile(data, alpha):
 
 
 def savefig(plt):
-    """
+    """ savefig
 
+    Allows displaying a matplotlib figure to the console terminal. This requires pysixel to be pip installed.
+    It also requires a terminal with Sixel graphic support, like DEC with graphic support, Linux xterm (started
+    with -ti 340), MLTerm (multilingual terminal, available on Windows, Linux etc).
+
+    This is called by the command line stem tool when using -o stdout and can also be used in an ipython session.
+
+    :param plt: matplotlib pyplot
     :return:
     """
     buf = BytesIO()
@@ -285,6 +321,7 @@ def stack_columns(row):
     """ stack_columns
 
     stack multiple columns into a single stacked value
+
     :param row: a row of letters
     :return: stacked string
     """
@@ -382,7 +419,7 @@ NO_PERIOD_FILTER = [
 
 
 #: Default definition of standard letters
-#: remove_accent has to be called explicitely for any of these letters to match their
+#: remove_accent has to be called explicitly for any of these letters to match their
 #: accented counterparts
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
 
@@ -433,7 +470,7 @@ NON_ALPHA = [
     "—",
 ]
 
-#: Charset mappings
+#: Charset unicode digit mappings
 mapping = {
     "arabic": {
         "0": "٠",
@@ -641,6 +678,8 @@ mapping = {
     },
 }
 
+
+#: Alphabet unicode mapping
 alpha_mapping = {
     "boldsans": "𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇",
     "bold": "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳",
@@ -659,18 +698,45 @@ alpha_mapping = {
 
 
 def square_scale():
+    """ square_scale
+
+    Ordered key for 0-9 mapping to squares from tiny filled square to large hollow square.
+
+    :return: scale from 0 to 9
+    """
     return "🞌 🞍 ￭ ⬛ 🞓 🞒 🞑 🞐 🞏 🞎"
 
 
 def available_charsets():
+    """ available_alpha_charsets
+
+        All supported unicode digit charsets, such as 'doublestruck' where 0 looks like: 𝟘
+
+        :return: list of charset names
+        """
     return list(mapping.keys())
 
 
 def available_alpha_charsets():
+    """ available_alpha_charsets
+
+    All supported unicode alphabet charsets, such as 'doublestruck' where A looks like: 𝔸
+
+    :return: list of charset names
+    """
     return list(alpha_mapping.keys())
 
 
 def translate_alpha_representation(text, charset=None):
+    """ translate_alpha_representation
+
+    Replace the default (ASCII type) charset in a string with the equivalent in
+    a different unicode charset.
+
+    :param text: input string
+    :param charset: unicode character set as defined by available_alpha_charsets
+    :return: translated string
+    """
     default = alpha_mapping["default"]
     lookup_charset = alpha_mapping[charset]
 
@@ -688,6 +754,17 @@ def translate_alpha_representation(text, charset=None):
 
 
 def translate_representation(text, charset=None, index=None, zero_blank=None):
+    """ translate_representation
+
+    Replace the default (ASCII type) digit glyphs in a string with the equivalent in
+    a different unicode charset.
+
+    :param text: input string
+    :param charset: unicode character set as defined by available_alpha_charsets
+    :param index: correspond to which item in a list we are looking at, for zero_blank
+    :param zero_blank: will blank 0 if True, unless we are looking at header (row index < 2)
+    :return: translated string
+    """
     lookup = mapping[charset]
     if charset == "arabic_r":
         if text[-1] != "|":

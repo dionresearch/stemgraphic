@@ -84,6 +84,7 @@ def heatmap(
     caps=False,
     compact=True,  # NOQA
     display=None,
+    flip_axes=False,
     interactive=True,
     leaf_order=1,
     leaf_skip=0,
@@ -91,6 +92,7 @@ def heatmap(
     stem_order=1,
     stem_skip=0,
     stop_words=None,
+    trim=None
 ):
     """ The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
      they are left in their respective columns. Row 'a' and Column 'b' would have the count of words starting
@@ -111,6 +113,7 @@ def heatmap(
     :param stem_order: how many stem characters per data point to display, defaults to 1
     :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
     :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
+    :param trim: for compatibility
     :return:
     """
 
@@ -662,13 +665,14 @@ def ngram_data(
             x_s = x.sample(n=display, random_state=random_state).reset_index()
     else:
         try:
-            x = (
-                pd.DataFrame({"word": df})
-                if column is None
-                else pd.DataFrame({"word": df[column]})
-            )
+            x = pd.DataFrame({"word": df if column is None else df[column]})
             if reverse:
                 x = x.str[::-1]
+        except ValueError:
+            x = df if column is None else df[column]
+            if reverse:
+                x = x.str[::-1]
+            x.rename(columns={df.columns[0]: 'word'}, inplace=True)
         except KeyError:
             x = df.copy()
             if reverse:
@@ -2438,9 +2442,9 @@ def heatmatrix(
     zero_blank=True,
     zoom=None,
 ):
-    """ The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
+    """ The heatmatrix displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
      they are left in their respective columns. Row 'a' and Column 'b' would have the count of words starting
-     with 'ab'. The heatmap is useful to look at patterns. For distribution, stem\_graphic is better suited.
+     with 'ab'. The heatmatrix is useful to look at patterns. For distribution, stem\_graphic is better suited.
 
     :param src: string, filename, url, list, numpy array, time series, pandas or dask dataframe
     :param alpha_only: only use stems from a-z alphabet
@@ -2536,7 +2540,9 @@ def text_heatmap(
 
         The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
         they are left in their respective columns. Row '42' and Column '7' would have the count of numbers starting
-        with '427' of the given scale.
+        with '427' of the given scale. The difference with the heatmatrix is that by default it doesn't show zero
+        values and it present a compact form by not showing whole empty rows either. Set compact = True to display
+        those empty rows.
 
         The heatmap is useful to look at patterns. For distribution, stem_graphic is better suited.
 

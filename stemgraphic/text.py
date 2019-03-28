@@ -29,7 +29,9 @@ def heatmap(
 
         The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
         they are left in their respective columns. Row '42' and Column '7' would have the count of numbers starting
-        with '427' of the given scale.
+        with '427' of the given scale. The difference with the heatmatrix is that by default it doesn't show zero
+        values and it present a compact form by not showing whole empty rows either. Set compact = True to display
+        those empty rows.
 
         The heatmap is useful to look at patterns. For distribution, stem_graphic is better suited.
 
@@ -72,6 +74,7 @@ def heatmap(
 
 
     :param df: list, numpy array, time series, pandas or dask dataframe
+    :param charset: valid unicode digit character set, as returned by helpers.available_charsets()
     :param column: specify which column (string or number) of the dataframe to use,
                    else the first numerical is selected
     :param compact: do not display empty stem rows (with no leaves), defaults to False
@@ -129,13 +132,13 @@ def heatmatrix(
     zero_blank=False,
     zoom=None,
 ):
-    """ heatmap
+    """ heatmatrix
 
-        The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
+        The heatmatrix displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
         they are left in their respective columns. Row '42' and Column '7' would have the count of numbers starting
         with '427' of the given scale.
 
-        The heatmap is useful to look at patterns. For distribution, stem_graphic is better suited.
+        The heatmatrix is useful to look at patterns. For distribution, stem_graphic is better suited.
 
         **Example**:
 

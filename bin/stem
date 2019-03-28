@@ -5,7 +5,7 @@ Stem and leaf plot from a csv or excel spreadsheet using best defaults. Can do t
 graphic, hist, line).
 
 Usage:
-    stem <input> [-c <column>] [-d] [-f] [-k <file>] [-o <file>] [-p <percent>] [-s <server>] [-t <type>] [-w]
+    stem <input> [-c <column>] [-d] [-f] [-k <file>] [-o <file>] [-p <percent>] [-r <random>] [-s <server>] [-t <type>] [-u] [-w]
     stem -h | --help
     stem --version
 
@@ -17,8 +17,10 @@ Options:
     -k <file>    persist sample to file (.csv, .pkl)
     -o <file>    output file (.txt, .png) or stdout
     -p <percent> trim data on both ends (ex: 0.2)
+    -r <random>  random_state seed (ex: 42)
     -s <server>  head node for distributed cluster
     -t <type>    alternate type of distribution plot
+    -u           use all data (default: 300 on text, 900 on graphics)
     -w           wide format (horizontal)
     --version
 
@@ -57,20 +59,6 @@ except ImportError:
     warn('No sixel graphic support')
     stdout = None
 
-type_to_alias = {
-    "dot": stem_dot,
-    "text_heatmap": text_heatmap,
-    "heatmap": heatmap,
-    "heatmatrix": heatmatrix,
-    "hist": stem_hist,
-    "graphic": stem_graphic,
-    "kde": stem_kde,
-    "line": stem_line,
-    "tally": stem_tally,
-    "text": stem_text,
-    "text_dot": text_dot,
-    "text_hist": text_hist,
-}
 
 if __name__ == "__main__":
     arguments = docopt(__doc__, version="Stemgraphic 0.8.3")
@@ -122,32 +110,41 @@ if __name__ == "__main__":
         if arguments["-c"] is not None:
             df = data_frame.read_csv(filename, usecols=[cols])
             print(df.dtypes)
-            if df.dtypes[0] == "object":
-                print("Specified column is an object, trying stemgraphic.alpha.")
-                from stemgraphic.alpha import (
-                    stem_graphic,
-                    stem_text,
-                    text_heatmap,
-                    heatmatrix
-                )
-
-                type_to_alias = {
-                    "dot": stem_dot,
-                    "text_heatmap": text_heatmap,
-                    "heatmap": heatmap,
-                    "heatmatrix": heatmatrix,
-                    "hist": stem_hist,
-                    "graphic": stem_graphic,
-                    "kde": stem_kde,
-                    "line": stem_line,
-                    "tally": stem_tally,
-                    "text": stem_text,
-                    "text_dot": text_dot,
-                    "text_hist": text_hist,
-                }
-                alpha = True
         else:
             df = data_frame.read_csv(filename)
+    if df.dtypes[0] == "object":
+        print("Specified column is an object, trying stemgraphic.alpha.")
+        from stemgraphic.alpha import (
+            stem_graphic,
+            stem_text,
+            text_heatmap,
+            heatmap,
+            heatmatrix
+        )
+
+        alpha = True
+
+    type_to_alias = {
+        "dot": stem_dot,
+        "text_heatmap": text_heatmap,
+        "heatmap": heatmap,
+        "heatmatrix": heatmatrix,
+        "hist": stem_hist,
+        "graphic": stem_graphic,
+        "kde": stem_kde,
+        "line": stem_line,
+        "tally": stem_tally,
+        "text": stem_text,
+        "text_dot": text_dot,
+        "text_hist": text_hist,
+    }
+
+    if arguments.get("-u"):
+        display = df.shape[0]
+
+    if arguments["-w"]:
+        pd.set_option('display.width', 1000)
+
     if arguments["-d"]:
         print(datetime.today())
         res = df.describe(include="all", percentiles=[0.1, 0.25, 0.5, 0.75, 0.9]).T
@@ -161,10 +158,21 @@ if __name__ == "__main__":
         pd.options.display.float_format = "{:,}".format
         print(res)
 
+    if arguments["-t"] in ('text_heatmap', 'heatmap', 'heatmatrix'):
+        pd.options.display.float_format = '{:,.0f}'.format
+        pd.set_option('display.width', 1000)
+
+    random_state = arguments.get("-r", None)
+    if random_state:
+        random_state = int(random_state)
     if arguments["-o"]:
-        fig, ax = type_to_alias.get(arguments.get("-t", "graphic"), stem_graphic)(
-            df, trim=trim, flip_axes=wide
+        res = type_to_alias.get(arguments.get("-t", "graphic"), stem_graphic)(
+            df, trim=trim, flip_axes=wide, random_state=random_state, display=display
         )
+        fig = res[0]
+        if arguments["-t"] == 'heatmap':
+            ax = res[1]
+            fig = ax.get_figure()
         if arguments["-o"] == 'stdout' and stdout:
             savefig(plt)
         else:
@@ -172,9 +180,10 @@ if __name__ == "__main__":
     else:
         if alpha:
             type_to_alias.get(arguments.get("-t", "text"), stem_text)(
-                df.iloc[:, 0].tolist(), caps=False
+                df.iloc[:, 0].tolist(), caps=False, flip_axes=wide, random_state=random_state, display=display
             )
         else:
             type_to_alias.get(arguments.get("-t", "text"), stem_text)(
-                df, outliers=True, persistence=persistence, trim=trim, flip_axes=wide
+                df, outliers=True, persistence=persistence, trim=trim,
+                flip_axes=wide, random_state=random_state, display=display
             )

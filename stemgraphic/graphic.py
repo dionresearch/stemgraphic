@@ -265,9 +265,11 @@ def heatmap(
     annotate=False,
     asFigure=False,
     ax=None,
+    caps=None,
     column=None,
     compact=False,
     display=900,
+    flip_axes=False,
     interactive=True,
     leaf_order=1,
     persistence=None,
@@ -282,7 +284,8 @@ def heatmap(
 
         The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
         they are left in their respective columns. Row '42' and Column '7' would have the count of numbers starting
-        with '427' of the given scale.
+        with '427' of the given scale. by opposition to the text heatmap, the graphical heatmap does not remove
+        empty rows by default. To activate this feature, use compact=True.
 
         The heatmap is useful to look at patterns. For distribution, stem_graphic is better suited.
 
@@ -290,10 +293,12 @@ def heatmap(
     :param annotate: display annotations (Z) on heatmap
     :param asFigure: return plot as plotly figure (for web applications)
     :param ax: matplotlib axes instance, usually from a figure or other plot
+    :param caps: for compatibility
     :param column: specify which column (string or number) of the dataframe to use,
                    else the first numerical is selected
     :param compact: do not display empty stem rows (with no leaves), defaults to False
     :param display: maximum number of data points to display, forces sampling if smaller than len(df)
+    :param flip_axes: bool, default is False
     :param interactive: if cufflinks is loaded, renders as interactive plot in notebook
     :param leaf_order: how many leaf digits per data point to display, defaults to 1
     :param persistence: filename. save sampled data to disk, either as pickle (.pkl) or csv (any other extension)
@@ -387,6 +392,8 @@ def heatmap(
         matrix, columns=["stem", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     )
     num_matrix.set_index("stem", inplace=True)
+    if flip_axes:
+        num_matrix = num_matrix.T
     if trim_blank:
         num_matrix.applymap(lambda x: x.strip() if type(x) is str else x)
 
