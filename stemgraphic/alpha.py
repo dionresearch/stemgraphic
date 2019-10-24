@@ -23,7 +23,7 @@ from math import radians
 import re
 import unicodedata
 from urllib.request import urlopen
-from warnings import warn
+from warnings import warn, catch_warnings, simplefilter
 
 try:
     import Levenshtein
@@ -92,7 +92,7 @@ def heatmap(
     stem_order=1,
     stem_skip=0,
     stop_words=None,
-    trim=None
+    trim=None,
 ):
     """ The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
      they are left in their respective columns. Row 'a' and Column 'b' would have the count of words starting
@@ -672,7 +672,7 @@ def ngram_data(
             x = df if column is None else df[column]
             if reverse:
                 x = x.str[::-1]
-            x.rename(columns={df.columns[0]: 'word'}, inplace=True)
+            x.rename(columns={df.columns[0]: "word"}, inplace=True)
         except KeyError:
             x = df.copy()
             if reverse:
@@ -990,6 +990,7 @@ def scatter(
     project=False,
     project_only=False,
     random_state=None,
+    size=5,
     sort_by="alpha",
     stem_order=1,
     stem_skip=0,
@@ -1094,6 +1095,7 @@ def scatter(
                 x[2][count_by].value_counts().rename("z"),
             ],
             axis=1,
+            sort=True
         )
         red.fillna(0)
         if normalize:
@@ -1107,6 +1109,7 @@ def scatter(
                 x[1][count_by].value_counts().rename("y"),
             ],
             axis=1,
+            sort=False
         )
         if normalize:
             red.y = red.y * xy_ratio
@@ -1169,7 +1172,7 @@ def scatter(
             red["z"] = red["z"] + np.random.uniform(-0.25, 0.25, len(red))
     palette = ["pink", "blue", "gray", "lightpurple"]
     if len(red.categories.dropna().unique()) < 4:
-        palette = palette[1 : len(red.categories.dropna().unique())]
+        palette = palette[0: len(red.categories.dropna().unique())]
     if fig_xy == None:
         fig_xy = (10, 10)
     if interactive:
@@ -1184,9 +1187,10 @@ def scatter(
                     categories="categories",
                     title=title,
                     opacity=alpha,
-                    # can't use this until fixed: https://github.com/santosjorge/cufflinks/issues/87
-                    # logx=log_scale, logy=log_scale, logz=log_scale,
-                    size=red.index.str.len(),
+                    logx=log_scale,
+                    logy=log_scale,
+                    logz=log_scale,
+                    size=red.index.str.len()*size,
                     text="text" if label else "hovertext",
                     hoverinfo="text",
                     mode="markers+text" if label else "markers",
@@ -1203,7 +1207,7 @@ def scatter(
                     y="y",
                     categories="categories",
                     title=title,
-                    size=red.index.str.len(),
+                    size=red.index.str.len()*size,
                     text="text" if label else "hovertext",
                     hoverinfo="text",
                     mode="markers+text" if label else "markers",
@@ -1352,13 +1356,12 @@ def scatter(
 
         if log_scale:
             if src3:
-                warn(
-                    "Log_scale is not working currently due to an issue in {}.".format(
-                        "cufflinks" if interactive else "matplotlib"
-                    )
-                )
-                # matplotlib bug: https://github.com/matplotlib/matplotlib/issues/209
-                # cufflinks bug: https://github.com/santosjorge/cufflinks/issues/87
+                if not interactive:
+                    warn(
+                        "Log_scale is not working currently due to an issue in matplotlib"
+                        )
+                    # matplotlib bug: https://github.com/matplotlib/matplotlib/issues/209
+                    # RESOLVED - cufflinks bug: https://github.com/santosjorge/cufflinks/issues/87
             else:
                 ax.set_xscale("log")
                 ax.set_yscale("log")
@@ -1733,7 +1736,7 @@ def stem_graphic(
     """
 
     if isinstance(df, str) and title is None:
-        title = df[:96]  # max 96 chars for title
+        title = df[:72]  # max 72 chars for title
     elif title is None:
         # still
         title = ""
@@ -1888,9 +1891,9 @@ def stem_graphic(
     ax.axes.get_yaxis().set_visible(False)
     ax.axes.get_xaxis().set_visible(False)
     if df2 is not None or secondary:
-        title_offset = -2 if mirror else 4
+        title_offset = -1 if mirror else 1
     else:
-        title_offset = 0 if mirror else 2
+        title_offset = 0 if mirror else 1
     if flip_axes:
         ax.set_title(title, y=title_offset)
     else:
@@ -2051,7 +2054,10 @@ def stem_graphic(
         ax.plot(0, height)
     else:
         ax.plot(width, 0)
-    fig.tight_layout()
+    # change in matplotlib 3 means this sometimes fail
+    with catch_warnings():
+        simplefilter("ignore")
+        fig.tight_layout()
     if figure_only:
         return fig, ax
     else:
@@ -2495,7 +2501,6 @@ def heatmatrix(
     else:
         title = "stem-and-leaf heatmap"
 
-    print(title)
     if flip_axes:
         alpha_matrix_ngram = alpha_matrix["ngram"].T
     else:
@@ -2852,6 +2857,7 @@ def word_scatter(
         normalize=normalize,
         percentage=percentage,
         random_state=random_state,
+        size=1,
         sort_by=sort_by,
         stem_order=stem_order,
         stem_skip=stem_skip,

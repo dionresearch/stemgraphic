@@ -29,6 +29,8 @@ Documentation is available as pdf
 
 The official website of stemgraphic is: http://stemgraphic.org
 
+A Stem-and-leaf Timeline: `timeline pdf <http://artchiv.es/pydata2016/timeline>`__ on artchiv.es
+
 See also: `Are you smarter than a fifth
 grader? <https://www.linkedin.com/pulse/you-smarter-than-fifth-grader-francois-dion/>`__
 
@@ -137,6 +139,19 @@ The supported text chart types (-t):
 
 Latest changes
 ==============
+
+Version 0.9.0
+-------------
+
+- bugfix when no index in translate_representation
+- reformat alpha.py with black (2 changes)
+- added log scale support with cufflinks in 3d (bug was fixed)
+- matplotlib log scale in 3d still not working, however
+- added html renders of all the demo notebooks
+- fixed some warnings (pandas and matplotlib)
+- fixed color palette for interactive plots when comparing 2 sources
+- fixed marker size on default view (5 x increase)
+- bugfix on command line stem
 
 Version 0.8.3
 -------------

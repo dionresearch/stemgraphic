@@ -61,7 +61,7 @@ except ImportError:
 
 
 if __name__ == "__main__":
-    arguments = docopt(__doc__, version="Stemgraphic 0.8.3")
+    arguments = docopt(__doc__, version="Stemgraphic 0.9.0")
     filename = arguments["<input>"]
 
     alpha = False
@@ -139,6 +139,7 @@ if __name__ == "__main__":
         "text_hist": text_hist,
     }
 
+    display = None
     if arguments.get("-u"):
         display = df.shape[0]
 
@@ -166,6 +167,8 @@ if __name__ == "__main__":
     if random_state:
         random_state = int(random_state)
     if arguments["-o"]:
+        if display is None:
+            display = 900
         res = type_to_alias.get(arguments.get("-t", "graphic"), stem_graphic)(
             df, trim=trim, flip_axes=wide, random_state=random_state, display=display
         )
@@ -178,12 +181,15 @@ if __name__ == "__main__":
         else:
             fig.savefig(arguments["-o"])
     else:
+        if display is None:
+            display = 300
         if alpha:
+            print("alpha")
             type_to_alias.get(arguments.get("-t", "text"), stem_text)(
                 df.iloc[:, 0].tolist(), caps=False, flip_axes=wide, random_state=random_state, display=display
             )
         else:
             type_to_alias.get(arguments.get("-t", "text"), stem_text)(
-                df, outliers=True, persistence=persistence, trim=trim,
+                df.iloc[:, 0], outliers=True, persistence=persistence, trim=trim,
                 flip_axes=wide, random_state=random_state, display=display
             )
