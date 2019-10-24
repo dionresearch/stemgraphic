@@ -92,7 +92,7 @@ def heatmap(
     stem_order=1,
     stem_skip=0,
     stop_words=None,
-    trim=None
+    trim=None,
 ):
     """ The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
      they are left in their respective columns. Row 'a' and Column 'b' would have the count of words starting
@@ -672,7 +672,7 @@ def ngram_data(
             x = df if column is None else df[column]
             if reverse:
                 x = x.str[::-1]
-            x.rename(columns={df.columns[0]: 'word'}, inplace=True)
+            x.rename(columns={df.columns[0]: "word"}, inplace=True)
         except KeyError:
             x = df.copy()
             if reverse:
