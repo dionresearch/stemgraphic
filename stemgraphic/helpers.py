@@ -765,6 +765,8 @@ def translate_representation(text, charset=None, index=None, zero_blank=None):
     :param zero_blank: will blank 0 if True, unless we are looking at header (row index < 2)
     :return: translated string
     """
+    if index is None:
+        index = 0
     lookup = mapping[charset]
     if charset == "arabic_r":
         if text[-1] != "|":
