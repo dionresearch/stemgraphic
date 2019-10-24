@@ -115,7 +115,7 @@ The supported text chart types (-t):
 
 # Latest changes
 
-##Version 0.9.0
+## Version 0.9.0
 
 - bugfix when no index in translate_representation
 - reformat alpha.py with black (2 changes)
