@@ -1184,8 +1184,9 @@ def scatter(
                     categories="categories",
                     title=title,
                     opacity=alpha,
-                    # can't use this until fixed: https://github.com/santosjorge/cufflinks/issues/87
-                    # logx=log_scale, logy=log_scale, logz=log_scale,
+                    logx=log_scale,
+                    logy=log_scale,
+                    logz=log_scale,
                     size=red.index.str.len(),
                     text="text" if label else "hovertext",
                     hoverinfo="text",
@@ -1352,13 +1353,13 @@ def scatter(
 
         if log_scale:
             if src3:
-                warn(
-                    "Log_scale is not working currently due to an issue in {}.".format(
-                        "cufflinks" if interactive else "matplotlib"
+                if not interactive:
+                    warn(
+                        "Log_scale is not working currently due to an issue in matplotlib"
+                        )
                     )
-                )
-                # matplotlib bug: https://github.com/matplotlib/matplotlib/issues/209
-                # cufflinks bug: https://github.com/santosjorge/cufflinks/issues/87
+                    # matplotlib bug: https://github.com/matplotlib/matplotlib/issues/209
+                    # RESOLVED - cufflinks bug: https://github.com/santosjorge/cufflinks/issues/87
             else:
                 ax.set_xscale("log")
                 ax.set_yscale("log")
