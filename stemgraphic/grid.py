@@ -1,3 +1,5 @@
+"""grid.py. row and col facets."""
+
 import stemgraphic.alpha as alpha
 import stemgraphic.num as num
 from stemgraphic.num import density_plot
@@ -42,6 +44,43 @@ def small_multiples(
     x_min=0,
     x_max=None,
 ):
+    """small multiples.
+
+    :param df: list, numpy array, time series, pandas or dask dataframe
+    :param var:
+    :param axes:
+    :param bins:
+    :param box:
+    :param cols:
+    :param col_labels:
+    :param density:
+    :param density_fill:
+    :param display:
+    :param fit:
+    :param flip_axes:
+    :param hist:
+    :param hues:
+    :param hue_labels:
+    :param jitter:
+    :param legend:
+    :param limit_var:
+    :param norm_hist:
+    :param plot_function:
+    :param random_state:
+    :param reverse:
+    :param rows:
+    :param row_labels:
+    :param rug:
+    :param singular:
+    :param shared_stem:
+    :param stem_display:
+    :param stem_order:
+    :param stem_skip:
+    :param strip:
+    :param x_min:
+    :param x_max:
+    :return:
+    """
     if density:
         stem_display = None
         if df[var].dtypes == "object":
@@ -135,9 +174,8 @@ def small_multiples(
             ax = list(axes[k])
         else:
             ax = axes
-        max_peak = 0
-        for j, rowval in enumerate(row_categories):
 
+        for j, rowval in enumerate(row_categories):
             max_peak = 0
             loc = "center" if stem_display else "left"
             if rows and cols:

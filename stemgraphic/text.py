@@ -1,3 +1,4 @@
+""" stemgraphic.text. visualizations for text."""
 import math
 import numpy as np
 from operator import itemgetter
@@ -473,8 +474,8 @@ def stem_data(
             scale_factor *= 10
         elif (check < 7 and n >= 45) or check < 3:
             scale_factor /= (
-                10
-            )  # 30 lines on avg, up to 60 some lines max by bumping the scale
+                10  # 30 lines on avg, up to 60 some lines max by bumping the scale
+            )
         elif math.floor(check) * 2 <= lines + 1 and break_on is None:
             break_on = 5
         if zoom == -1 and break_on == 5:

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-""" stemgraphic.alpha.
-
+"""stemgraphic.alpha.
 
 BRAND NEW in V.0.5.0!
 
@@ -31,8 +30,6 @@ except ImportError:
     Levenshtein = None
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -50,7 +47,7 @@ from .helpers import (
 
 
 def add_missing_letters(mat, stem_order, leaf_order, letters=None):
-    """ Add missing stems based on LETTERS. defaults to a-z alphabet.
+    """Add missing stems based on LETTERS. defaults to a-z alphabet.
 
     :param mat: matrix to modify
     :param stem_order: how many stem characters per data point to display, defaults to 1
@@ -94,9 +91,11 @@ def heatmap(
     stop_words=None,
     trim=None,
 ):
-    """ The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
+    """heatmap.
+
+    The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
      they are left in their respective columns. Row 'a' and Column 'b' would have the count of words starting
-     with 'ab'. The heatmap is useful to look at patterns. For distribution, stem\_graphic is better suited.
+     with 'ab'. The `heatmap` is useful to look at patterns. For distribution, `stem_graphic` is better suited.
 
     :param src: string, filename, url, list, numpy array, time series, pandas or dask dataframe
     :param alpha_only: only use stems from a-z alphabet
@@ -116,7 +115,6 @@ def heatmap(
     :param trim: for compatibility
     :return:
     """
-
     _, alpha_matrix, _ = ngram_data(
         src,
         alpha_only=alpha_only,
@@ -179,7 +177,7 @@ def heatmap_grid(
     stop_words=None,
     threshold=0,
 ):
-    """ heatmap_grid.
+    """heatmap_grid.
 
     With stem_graphic, it is possible to directly compare two different sources. In the case of a heatmap,
     two different data sets cannot be visualized directly on a single heatmap. For this task, we designed
@@ -526,7 +524,7 @@ def heatmap_grid(
 
 
 def matrix_difference(mat1, mat2, thresh=0, ord=None):
-    """ matrix_difference
+    """matrix_difference.
 
     :param mat1: first heatmap dataframe
     :param mat2: second heatmap dataframe
@@ -574,7 +572,7 @@ def ngram_data(
     stem_skip=0,
     stop_words=None,
 ):
-    """ ngram_data
+    """ngram_data.
 
     This is the main text ingestion function for stemgraphic.alpha. It is used by most of the visualizations. It
     can also be used directly, to feed a pipeline, for example.
@@ -689,9 +687,9 @@ def ngram_data(
     if leaf_order is None:
         leaf_order = 1
 
-    x_s["stem"] = x_s.word.str[stem_skip : stem_skip + stem_order]
+    x_s["stem"] = x_s.word.str[stem_skip: stem_skip + stem_order]
     offset = stem_skip + stem_order + leaf_skip
-    x_s["leaf"] = x_s.word.str[offset : offset + leaf_order].str.ljust(leaf_order)
+    x_s["leaf"] = x_s.word.str[offset: offset + leaf_order].str.ljust(leaf_order)
     x_s["ngram"] = x_s["stem"] + x_s["leaf"]
 
     if persistence is not None:
@@ -722,7 +720,7 @@ def ngram_data(
 
 
 def polar_word_plot(ax, word, words, label, min_dist, max_dist, metric, offset, step):
-    """ polar_word_plot
+    """polar_word_plot.
 
     Utility function for radar plot.
 
@@ -767,7 +765,7 @@ def plot_sunburst_level(
     stem=None,
     vis=0,
 ):
-    """ plot_sunburst_level
+    """plot_sunburst_level.
 
     utility function for sunburst function.
 
@@ -842,7 +840,7 @@ def radar(
     random_state=None,
     sort_by="alpha",
 ):
-    """ radar
+    """radar.
 
     The radar plot compares a reference word with a corpus. By default, it calculates the levenshtein
     distance between the reference word and each words in the corpus. An alternate distance or metric
@@ -944,7 +942,7 @@ def radar(
 
 
 def _scatter3d(df, x, y, z, s, color, ax, label=None, alpha=0.5):
-    """ _scatter3d
+    """_scatter3d.
 
     Helper to make call to scatter3d a little more like the 2d
 
@@ -959,7 +957,6 @@ def _scatter3d(df, x, y, z, s, color, ax, label=None, alpha=0.5):
     :param alpha: alpha transparency
     :return:
     """
-
     xs = 0 if x == 0 else df[x]  # logic for projections
     ys = 0 if y in (0, 100) else df[y]
     zs = 0 if z == 0 else df[z]
@@ -997,7 +994,7 @@ def scatter(
     stop_words=None,
     whole=False,
 ):
-    """ scatter
+    """scatter.
 
     With 2 sources:
 
@@ -1052,7 +1049,6 @@ def scatter(
     :param whole: for normalized or percentage, use whole integer values (round)
     :return: matplotlib ax, dataframe with categories
     """
-
     alpha_matrix = []
     x = []
     filename = []
@@ -1095,7 +1091,7 @@ def scatter(
                 x[2][count_by].value_counts().rename("z"),
             ],
             axis=1,
-            sort=True
+            sort=True,
         )
         red.fillna(0)
         if normalize:
@@ -1109,7 +1105,7 @@ def scatter(
                 x[1][count_by].value_counts().rename("y"),
             ],
             axis=1,
-            sort=False
+            sort=False,
         )
         if normalize:
             red.y = red.y * xy_ratio
@@ -1173,12 +1169,12 @@ def scatter(
     palette = ["pink", "blue", "gray", "lightpurple"]
     if len(red.categories.dropna().unique()) < 4:
         palette = palette[0: len(red.categories.dropna().unique())]
-    if fig_xy == None:
+    if fig_xy is None:
         fig_xy = (10, 10)
     if interactive:
         try:
             if src3:
-                ax1 = red.iplot(
+                ax = red.iplot(
                     kind="scatter3d",
                     colors=palette,
                     x="x",
@@ -1190,14 +1186,14 @@ def scatter(
                     logx=log_scale,
                     logy=log_scale,
                     logz=log_scale,
-                    size=red.index.str.len()*size,
+                    size=red.index.str.len() * size,
                     text="text" if label else "hovertext",
                     hoverinfo="text",
                     mode="markers+text" if label else "markers",
                     asFigure=asFigure,
                 )
             else:
-                ax1 = red.iplot(
+                ax = red.iplot(
                     kind="scatter",
                     colors=palette,
                     logx=log_scale,
@@ -1207,7 +1203,7 @@ def scatter(
                     y="y",
                     categories="categories",
                     title=title,
-                    size=red.index.str.len()*size,
+                    size=red.index.str.len() * size,
                     text="text" if label else "hovertext",
                     hoverinfo="text",
                     mode="markers+text" if label else "markers",
@@ -1359,7 +1355,7 @@ def scatter(
                 if not interactive:
                     warn(
                         "Log_scale is not working currently due to an issue in matplotlib"
-                        )
+                    )
                     # matplotlib bug: https://github.com/matplotlib/matplotlib/issues/209
                     # RESOLVED - cufflinks bug: https://github.com/santosjorge/cufflinks/issues/87
             else:
@@ -1419,7 +1415,7 @@ def stem_scatter(
     stop_words=None,
     whole=False,
 ):
-    """ stem_scatter
+    """stem_scatter.
 
     stem_scatter compares the word frequency of two sources, on each axis. Each data point Z value is the word
     or stem-and-leaf value, while the X axis reflects that word/ngram count in one source and the Y axis
@@ -1515,7 +1511,7 @@ def stem_text(
     stop_words=None,
     random_state=None,
 ):
-    """ stem_text
+    """stem_text.
 
     Tukey's original stem-and-leaf plot was text, with a vertical delimiter to separate stem from
     leaves. Just as stemgraphic implements a text version of the plot for numbers,
@@ -1548,7 +1544,6 @@ def stem_text(
     :param stem_skip: how many stem characters to skip, defaults to 0 - useful to zoom in on a single root letter
     :param stop_words: stop words to remove. None (default), list or builtin EN (English), ES (Spanish) or FR (French)
     """
-
     # the rows will come back sorted from this call
     rows, alpha_matrix, x = ngram_data(
         df,
@@ -1680,10 +1675,10 @@ def stem_graphic(
     trim_blank=False,
     underline_color=None,
 ):
-    """ stem_graphic
+    """stem_graphic.
 
-    The principal visualization of stemgraphic.alpha is stem_graphic. It offers all the
-    options of stem\_text (3.1) and adds automatic title, mirroring, flipping of axes,
+    The principal visualization of stemgraphic.alpha is `stem_graphic`. It offers all the
+    options of `stem_text` (3.1) and adds automatic title, mirroring, flipping of axes,
     export (to pdf, svg, png, through fig.savefig) and many more options to change the
     visual appearance of the plot (font size, color, background color, underlining and more).
 
@@ -1734,7 +1729,6 @@ def stem_graphic(
     :param underline_color: color of the horizontal line under the leaves, None for no display
     :return: matplotlib figure and axes instance, and dataframe if figure_only is False
     """
-
     if isinstance(df, str) and title is None:
         title = df[:72]  # max 72 chars for title
     elif title is None:
@@ -2082,7 +2076,7 @@ def stem_freq_plot(
     stem_skip=0,
     stop_words=None,
 ):
-    """ stem_freq_plot
+    """stem_freq_plot.
 
     Word frequency plot is the most common visualization in NLP. In this version it supports stem-and-leaf / n-grams.
 
@@ -2136,7 +2130,7 @@ def stem_freq_plot(
         try:
             if column:
                 # one or multiple "columns" specified, we filter those stems
-                fig = alpha_matrix.loc[column].word.iplot(
+                alpha_matrix.loc[column].word.iplot(
                     kind=kind, barmode="stack", asFigure=asFigure, title=title
                 )
             else:
@@ -2174,7 +2168,7 @@ def stem_sunburst(
     stop_words=None,
     top=0,
 ):
-    """ stem_sunburst
+    """stem_sunburst.
 
     Stem-and-leaf based sunburst. See sunburst for details
 
@@ -2244,11 +2238,11 @@ def sunburst(
     stop_words=None,
     top=40,
 ):
-    """ sunburst
+    """sunburst.
 
      Word sunburst charts are similar to pie or donut charts, but add some statistics
      in the middle of the chart, including the percentage of total words targeted for a given
-    number of unique words (ie. top 50 words, 48\% coverage).
+    number of unique words (ie. top 50 words, 48`%` coverage).
 
     With stem-and-leaf, the first level of the sunburst represents the stem and the second
     level subdivides each stem by leaves.
@@ -2448,9 +2442,11 @@ def heatmatrix(
     zero_blank=True,
     zoom=None,
 ):
-    """ The heatmatrix displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
+    """heatmatrix.
+
+     The heatmatrix displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
      they are left in their respective columns. Row 'a' and Column 'b' would have the count of words starting
-     with 'ab'. The heatmatrix is useful to look at patterns. For distribution, stem\_graphic is better suited.
+     with 'ab'. The `heatmatrix` is useful to look at patterns. For distribution, `stem_graphic` is better suited.
 
     :param src: string, filename, url, list, numpy array, time series, pandas or dask dataframe
     :param alpha_only: only use stems from a-z alphabet
@@ -2477,7 +2473,6 @@ def heatmatrix(
     :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
     :return: count matrix, scale
     """
-
     _, alpha_matrix, _ = ngram_data(
         src,
         alpha_only=alpha_only,
@@ -2496,10 +2491,6 @@ def heatmatrix(
         alpha_matrix.word = add_missing_letters(
             alpha_matrix.word, stem_order, leaf_order
         )
-    if isinstance(src, str):
-        title = "stem-and-leaf heatmap for {}".format(src)
-    else:
-        title = "stem-and-leaf heatmap"
 
     if flip_axes:
         alpha_matrix_ngram = alpha_matrix["ngram"].T
@@ -2541,7 +2532,7 @@ def text_heatmap(
     zero_blank=True,
     zoom=None,
 ):
-    """ text heatmap
+    """text heatmap.
 
         The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
         they are left in their respective columns. Row '42' and Column '7' would have the count of numbers starting
@@ -2607,7 +2598,7 @@ def word_freq_plot(
     stop_words=None,
     top=100,
 ):
-    """ word frequency bar chart.
+    """word frequency bar chart.
 
     This function creates a classical word frequency bar chart.
 
@@ -2699,9 +2690,7 @@ def word_freq_plot(
                         .sort_values(ascending=ascending)
                         .plot(kind=kind, title=title)
                     )
-            figure = (
-                ax
-            )  # special case, requested interactive, but unavailable, so return matplotlib ax
+            figure = ax  # special case, requested interactive, but unavailable, so return matplotlib ax
     else:
         plt.figure(figsize=(20, 20))
         if top < 0:
@@ -2739,7 +2728,7 @@ def word_radar(
     random_state=None,
     sort_by="alpha",
 ):
-    """ word_radar
+    """word_radar.
 
     Radar plot based on words. Currently, the only type of radar plot supported. See `radar' for more detail.
 
@@ -2755,7 +2744,6 @@ def word_radar(
     :param sort_by: default to 'alpha', can also be 'len'
     :return:
     """
-
     return radar(
         word,
         comparisons,
@@ -2798,7 +2786,7 @@ def word_scatter(
     stop_words=None,
     whole=False,
 ):
-    """ word_scatter
+    """word_scatter.
 
     Scatter compares the word frequency of two sources, on each axis. Each data point Z value is the word
     or stem-and-leaf value, while the X axis reflects that word count in one source and the Y axis re-
@@ -2887,7 +2875,7 @@ def word_sunburst(
     stop_words=None,
     top=40,
 ):
-    """ word_sunburst
+    """word_sunburst.
 
     Word based sunburst. See sunburst for details
 

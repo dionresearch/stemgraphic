@@ -1,8 +1,8 @@
-""" Stemgraphic.graphic
+"""Stemgraphic.graphic.
 
 Stemgraphic provides a complete set of functions to handle everything related to stem-and-leaf plots.
 Stemgraphic.graphic is a module implementing a graphical stem-and-leaf plot function and a stem-and-leaf heatmap plot
-function for numerical data.
+function for numerical data. It also provides a density_plot
 """
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
@@ -54,7 +54,7 @@ def density_plot(
     x_max=None,
     y_axis_label=True,
 ):
-    """ density_plot.
+    """density_plot.
 
     Various density and distribution plots conveniently packaged into one function. Density plot normally forces
     tails at each end which might go beyond the data. To force min/max to be driven by the data, use limit_var.
@@ -445,10 +445,9 @@ def leaf_scatter(
     scaled_leaf=True,
     zoom=None,
 ):
-    """ leaf_scatter
+    """leaf_scatter.
 
     Scatter for numerical values based on leaf for X axis (scaled or not) and stem for Y axis
-
 
     :param df: list, numpy array, time series, pandas or dask dataframe
     :param alpha: opacity of the dots, defaults to 10%
@@ -500,11 +499,6 @@ def leaf_scatter(
         primary_kw = {}
     base_fontsize = font_kw.get("fontsize", 12)
 
-    stem_fontsize = font_kw.get("stem_fontsize", base_fontsize)
-    stem_fontweight = font_kw.get("stem_fontweight", "normal")
-    stem_facecolor = font_kw.get("stem_facecolor", None)
-    stem_fontcolor = font_kw.get("stem_color", "k")
-
     min_val, max_val, total_rows = min_max_count(df)
     fig = None
 
@@ -534,12 +528,11 @@ def leaf_scatter(
         zoom=zoom,
     )
     st, lf = pair.split("|")
-    n = display if total_rows > display else total_rows
 
     if scaled_leaf:
-        x = [abs(int(l * 10)) for l, s in sorted_data]
+        x = [abs(int(leaf * 10)) for leaf, stem in sorted_data]
     else:
-        x = [abs(l) for l, s in sorted_data]
+        x = [abs(leaf) for leaf, stem in sorted_data]
     text_data = x
 
     if leaf_jitter:
@@ -548,7 +541,7 @@ def leaf_scatter(
     if total_rows <= display:
         y = sorted(df)
     else:
-        y = [(s + l) * scale_factor for l, s in sorted_data]
+        y = [(stem + leaf) * scale_factor for leaf, stem in sorted_data]
 
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 8))
@@ -557,7 +550,7 @@ def leaf_scatter(
 
     ax.scatter(x, y, alpha=alpha, label="Ylab + X" if scaled_leaf else "Ylab + X * 10")
     for i, text in enumerate(text_data):
-        ax.annotate(text, (x[i], y[i]), color=leaf_color)
+        ax.annotate(text, (x[i], y[i]), fontsize=base_fontsize, color=leaf_color, alpha=leaf_alpha)
 
     plt.box(on=None)
     ax.axes.axvline(
@@ -627,9 +620,9 @@ def stem_graphic(
     unit="",
     zoom=None,
 ):
-    """ stem_graphic
+    """stem_graphic.
 
-    A graphical stem and leaf plot. stem_graphic provides horizontal, vertical or mirrored layouts, sorted in
+    A graphical stem and leaf plot. `stem_graphic` provides horizontal, vertical or mirrored layouts, sorted in
     ascending or descending order, with sane default settings for the visuals, legend, median and outliers.
 
     :param df: list, numpy array, time series, pandas or dask dataframe
@@ -981,7 +974,7 @@ def stem_graphic(
             else:
                 ax.text(
                     2.5 + med / 2.23,
-                    cnt + (asc == False),
+                    cnt + (asc is False),
                     "_",
                     fontsize=base_fontsize,
                     color=leaf_color,  # NOQA
