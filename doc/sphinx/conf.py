@@ -17,14 +17,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import io
-import os
-
-here = os.path.abspath(os.path.dirname(__file__))
-
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
-
+from stemgraphic import __version__ as setup_version
 
 # -- General configuration ------------------------------------------------
 
@@ -64,8 +57,6 @@ author = 'Francois Dion'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-with io.open(os.path.join(here, '../../VERSION')) as f:
-    setup_version = f.read()
 
 # The short X.Y version.
 version = setup_version
