@@ -1,10 +1,9 @@
-""" stopwords
+"""stopwords.
 
 This module includes 4 lists of stop words: EN (main English list), ALT_EN (alternate English list),
 FR (French) and SP (Spanish).
 
 A PT (Portuguese) list is in the works.
-
 """
 #: ALT_ENglish stopwords
 ALT_EN = [

@@ -1,4 +1,4 @@
-""" stemgraphic.text. visualizations for text."""
+"""stemgraphic.text. visualizations for text."""
 import math
 from operator import itemgetter
 from warnings import warn
@@ -35,9 +35,9 @@ def heatmap(
     zero_blank=True,
     zoom=None,
 ):
-    """ heatmap
+    """heatmap.
 
-        The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
+        The `heatmap` displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
         they are left in their respective columns. Row '42' and Column '7' would have the count of numbers starting
         with '427' of the given scale. The difference with the heatmatrix is that by default it doesn't show zero
         values and it present a compact form by not showing whole empty rows either. Set compact = True to display
@@ -142,9 +142,9 @@ def heatmatrix(
     zero_blank=False,
     zoom=None,
 ):
-    """ heatmatrix
+    """heatmatrix.
 
-        The heatmatrix displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
+        The `heatmatrix` displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
         they are left in their respective columns. Row '42' and Column '7' would have the count of numbers starting
         with '427' of the given scale.
 
@@ -327,10 +327,10 @@ def quantize(
     trim=None,
     zoom=None,
 ):
-    """ quantize
+    """quantize.
 
-    Converts a series into stem-and-leaf and back into decimal. This has the potential effect of decimating (or
-    truncating) values in a lossy way.
+    Converts a series into stem-and-leaf and back into decimal. This has the potential effect of **decimating** (or
+    **truncating**) values in a lossy way.
 
     :param df: list, numpy array, time series, pandas or dask dataframe
     :param column: specify which column (string or number) of the dataframe to use,
@@ -378,7 +378,7 @@ def stem_data(
     trim=False,
     zoom=None,
 ):
-    """ stem_data
+    """stem_data.
 
     Returns scale factor, key label and list of rows.
 
@@ -623,7 +623,7 @@ def stem_dot(
     unit="",
     zoom=None,
 ):
-    """ stem_dot
+    """stem_dot.
 
     stem_dot builds a stem-and-leaf plot with dots instead of bars.
 
@@ -772,7 +772,7 @@ def stem_hist(
     unit="",
     zoom=None,
 ):
-    """ stem_hist
+    """stem_hist.
 
     stem_hist builds a histogram matching the stem-and-leaf plot, with the numbers hidden, as shown on the
     cover of the companion brochure.
@@ -877,7 +877,7 @@ def stem_tally(
     unit="",
     zoom=None,
 ):
-    """ stem_tally
+    """stem_tally.
 
     Stem-and-leaf plot using tally marks for leaf count, up to 5 per block.
 
@@ -1032,7 +1032,7 @@ def stem_text(
     unit="",
     zoom=None,
 ):
-    """ stem_text.
+    """stem_text.
 
     Classic text based stem-and-leaf plot.
 

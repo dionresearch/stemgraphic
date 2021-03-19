@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""stem_graphic
+"""stem_graphic.
 
 Package implementing a complete toolkit for text and a graphical stem-and-leaf plots and other visualizations adapted
 to stem-and-leaf pair values, such as heatmaps and sunburst charts.

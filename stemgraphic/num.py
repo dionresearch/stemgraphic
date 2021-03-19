@@ -1,4 +1,4 @@
-""" stemgraphic.num.
+"""stemgraphic.num.
 
 BRAND NEW in V.0.5.0!
 

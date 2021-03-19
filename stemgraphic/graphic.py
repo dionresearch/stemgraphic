@@ -286,7 +286,7 @@ def heatmap(
     unit="",
     zoom=None,
 ):
-    """ heatmap
+    """heatmap.
 
         The heatmap displays the same underlying data as the stem-and-leaf plot, but instead of stacking the leaves,
         they are left in their respective columns. Row '42' and Column '7' would have the count of numbers starting
@@ -453,7 +453,7 @@ def leaf_scatter(
 ):
     """leaf_scatter.
 
-    Scatter for numerical values based on leaf for X axis (scaled or not) and stem for Y axis
+    Scatter for numerical values based on leaf for X axis (scaled or not) and stem for Y axis.
 
     :param df: list, numpy array, time series, pandas or dask dataframe
     :param alpha: opacity of the dots, defaults to 10%
@@ -483,7 +483,6 @@ def leaf_scatter(
     :param zoom: zoom level, on top of calculated scale (+1, -1 etc)
     :return:
     """
-
     try:
         cols = len(df.columns)
     except AttributeError:

@@ -3,8 +3,8 @@
 
 # Overview
 
-John Tukey’s stem-and-leaf plot first appeared in 1970. Although very useful back then, it cannot handle 
-more than 300 data points and is completely text-based. Stemgraphic is a very easy to use python package 
+John Tukey’s stem-and-leaf plot first appeared in 1970. Although quite useful back then, it cannot handle 
+more than 300 data points and is completely text-based. Stemgraphic is an easy to use python package 
 providing a solution to these limitations (no size limit, graphical tool). It also supports **categorical**
 and **text** as input.
 
@@ -220,7 +220,7 @@ Version bump to 0.6 due to order of params changing. Shouldn't affect using name
 
 Major code change and expansion for num.stem_graphic including:
 - back-to-back stem-and-leaf plots
-- allows comparison of very skewed data
+- allows comparison of extremely skewed data
 - bug fix (rounding issue) due to python precision
 - better stem handling 
 - alpha down to 10% for bars
@@ -318,14 +318,12 @@ once of min, max and count all at once. Count replaces len(x).
 Added the companion PDF as it will be presented at PyData Carolinas 2016.
 
 
-# TODO
+# To do
 
 - multivariate support
 - provide support for secondary plots with dask
 - automatic dense layout
 - add a way to provide an alternate function to the sampling
-- support for spark rdds and/or sparkling pandas
-- create a bokeh version. Ideally rbokeh too.
 - add unit tests
 - add feather, hdf5 etc support, particularly on sample persistence
 - more charts

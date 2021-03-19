@@ -1,4 +1,4 @@
-""" helpers.py
+"""helpers.py.
 
 Helper functions for stemgraphic.
 """
@@ -20,7 +20,9 @@ except ImportError:
 
 
 def jitter(data, scale):
-    """Adds jitter to data, for display purpose
+    """jitter.
+
+    Adds jitter to data, for display purpose
 
     :param data: numpy or pandas dataframe
     :param scale:
@@ -30,7 +32,9 @@ def jitter(data, scale):
 
 
 def key_calc(stem, leaf, scale):
-    """Calculates a value from a stem, a leaf and a scale.
+    """key_calc.
+
+    Calculates a value from a stem, a leaf and a scale.
 
     :param stem:
     :param leaf:
@@ -57,7 +61,7 @@ def legend(
     pos="best",
     unit="",
 ):
-    """ legend
+    """legend.
 
     Builds a graphical legend for numerical stem-and-leaf plots.
 
@@ -77,7 +81,6 @@ def legend(
     :param unit:
     :param aggregation:
     """
-
     if pos is None:
         return
     aggr_fontsize = cur_font.get_size() - 2
@@ -182,7 +185,7 @@ def legend(
 
 
 def min_max_count(x, column=0):
-    """ min_max_count
+    """min_max_count.
 
     Handles min, max and count. This works on numpy, lists, pandas and dask dataframes.
 
@@ -209,20 +212,20 @@ def min_max_count(x, column=0):
 
 
 def na_count(x, column=0):
-    """ min_max_count
+    """min_max_count.
 
-        Handles min, max and count. This works on numpy, lists, pandas and dask dataframes.
+    Handles min, max and count. This works on numpy, lists, pandas and dask dataframes.
 
-        :param x: list, numpy array, series, pandas or dask dataframe
-        :param column: future use
-        :return: all numpy nan count
-        """
+    :param x: list, numpy array, series, pandas or dask dataframe
+    :param column: future use
+    :return: all numpy nan count
+    """
     val_missing = x.isnull().sum()
     return val_missing
 
 
 def npy_save(path, array):
-    """ npy_save
+    """npy_save.
 
     saves numpy array to npy file on disk.
 
@@ -238,7 +241,7 @@ def npy_save(path, array):
 
 
 def npy_load(path):
-    """ npy_load
+    """npy_load.
 
     load numpy array (npy) file from disk.
 
@@ -252,7 +255,7 @@ def npy_load(path):
 
 
 def pkl_save(path, array):
-    """ pkl_save
+    """pkl_save.
 
     saves matrix or dataframe to pkl file on disk.
 
@@ -268,7 +271,7 @@ def pkl_save(path, array):
 
 
 def pkl_load(path):
-    """ pkl_load
+    """pkl_load.
 
     load matrix or dataframe pickle (pkl) file from disk.
 
@@ -284,7 +287,7 @@ def pkl_load(path):
 
 
 def percentile(data, alpha):
-    """ percentile
+    """percentile.
 
     :param data: list, numpy array, time series or pandas dataframe
     :param alpha: between 0 and 0.5 proportion to select on each side of the distribution
@@ -297,7 +300,7 @@ def percentile(data, alpha):
 
 
 def savefig(plt):
-    """ savefig
+    """savefig.
 
     Allows displaying a matplotlib figure to the console terminal. This requires pysixel to be pip installed.
     It also requires a terminal with Sixel graphic support, like DEC with graphic support, Linux xterm (started
@@ -318,7 +321,7 @@ def savefig(plt):
 
 
 def stack_columns(row):
-    """ stack_columns
+    """stack_columns.
 
     stack multiple columns into a single stacked value
 
@@ -698,7 +701,7 @@ alpha_mapping = {
 
 
 def square_scale():
-    """ square_scale
+    """square_scale.
 
     Ordered key for 0-9 mapping to squares from tiny filled square to large hollow square.
 
@@ -708,17 +711,17 @@ def square_scale():
 
 
 def available_charsets():
-    """ available_alpha_charsets
+    """available_alpha_charsets.
 
-        All supported unicode digit charsets, such as 'doublestruck' where 0 looks like: 𝟘
+    All supported unicode digit charsets, such as 'doublestruck' where 0 looks like: 𝟘
 
-        :return: list of charset names
-        """
+    :return: list of charset names
+    """
     return list(mapping.keys())
 
 
 def available_alpha_charsets():
-    """ available_alpha_charsets
+    """available_alpha_charsets.
 
     All supported unicode alphabet charsets, such as 'doublestruck' where A looks like: 𝔸
 
@@ -728,7 +731,7 @@ def available_alpha_charsets():
 
 
 def translate_alpha_representation(text, charset=None):
-    """ translate_alpha_representation
+    """translate_alpha_representation.
 
     Replace the default (ASCII type) charset in a string with the equivalent in
     a different unicode charset.
@@ -754,7 +757,7 @@ def translate_alpha_representation(text, charset=None):
 
 
 def translate_representation(text, charset=None, index=None, zero_blank=None):
-    """ translate_representation
+    """translate_representation.
 
     Replace the default (ASCII type) digit glyphs in a string with the equivalent in
     a different unicode charset.

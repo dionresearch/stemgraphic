@@ -17,7 +17,7 @@ def stem_hist(
     outliers=False,
     trim=False,
 ):
-    """ stem_hist
+    """stem_hist.
 
     stem_hist builds a graphical histogram matching the stem-and-leaf plot, with the numbers hidden, as shown on the
     cover of the companion brochure.
@@ -120,7 +120,7 @@ def stem_line(
 
 
 def stem_symmetric_dot(x, **kw_args):
-    """ stem_symmetric_dot
+    """stem_symmetric_dot.
 
     stem_symmetric_dot builds a symmetric stem dot plot
 
