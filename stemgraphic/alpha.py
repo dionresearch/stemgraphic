@@ -1778,7 +1778,8 @@ def stem_graphic(
     )
 
     if combined is not None:
-        max_leaves = rows[combined].str.len().max()
+        in_row = [val for val in combined if val in rows.index]
+        max_leaves = rows[in_row].str.len().max()
     else:
         max_leaves = rows.str.len().max()
 
@@ -1817,8 +1818,6 @@ def stem_graphic(
         width = max_leaves / (max_leaves / 40)
         if width < 20:
             width = 20
-        # if df2:
-        #    width /= 2  # two charts, need to maximize ratio
         height = len(rows) + 3
     if combined is None:
         combined = rows.index
@@ -1829,10 +1828,8 @@ def stem_graphic(
     aggr_offset = -0.5
     aggr_line_offset = 1
     if df2 is not None:
-        # values = res.index
-        # combined = sorted(list(set(values.append(res2.index))))
-        aggr_offset = -3.7
-        aggr_line_offset = 0.2
+        aggr_offset = -4.0
+        aggr_line_offset = -4.0
         if ax2 is None:
             fig, (ax1, ax) = plt.subplots(
                 1, 2, sharey=True, figsize=((width / 4), (height / 4))
