@@ -50,7 +50,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'stemgraphic'
-copyright = '2016-2019, Francois Dion'
+copyright = '2016-2021, Francois Dion'
 author = 'Francois Dion'
 
 # The version info for the project you're documenting, acts as replacement for
