@@ -1,0 +1,46 @@
+name: Mariner dev steps w/Miniconda
+on:
+  pull_request:
+
+jobs:
+  testenv:
+    name: Conda env with Python ${{ matrix.python-version }}, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+        fail-fast: false
+        matrix:
+            os: ["ubuntu-latest"]
+            python-version: ["3.8", "3.7"]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          activate-environment: stemgraphic
+          python-version: ${{ matrix.python-version }}
+          auto-activate-base: false
+      - shell: bash -l {0}
+        run: |
+          conda info
+      - shell: bash -l {0}
+        run: |
+          conda install docopt matplotlib pandas plotly seaborn scipy flake8 -y -q
+          python -m pip install pep257 proselint .
+
+      - shell: bash -l {0}
+        run:conda list
+
+      - name: Lint
+        shell: bash -l {0}
+        run: |
+            flake8 --count --show-source --max-line-length=127 --statistics stemgraphic/
+            # flake8 --count --exit-zero --max-complexity=12 --max-line-length=127 --statistics stemgraphic/
+
+      - name: Code Documentation check
+        shell: bash -l {0}
+        run: |
+            pep257 stemgraphic/
+      - name: User Documentation check
+        shell: bash -l {0}
+        run: |
+            proselint README.md
