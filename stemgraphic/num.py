@@ -12,7 +12,7 @@ The shorthand from previous versions of stemgraphic is still available and defau
   from stemgraphic import stem_graphic, stem_text, heatmap
 
 """
-
+# flake8: noqa F401
 from .text import (
     heatmatrix,
     heatmap as text_heatmap,
