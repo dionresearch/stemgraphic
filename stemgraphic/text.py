@@ -1,10 +1,19 @@
 """ stemgraphic.text. visualizations for text."""
 import math
-import numpy as np
 from operator import itemgetter
 from warnings import warn
 
-from .helpers import *
+import numpy as np
+import pandas as pd
+
+from .helpers import (
+    available_charsets,
+    dd,
+    key_calc,
+    min_max_count,
+    percentile,
+    translate_representation,
+)
 
 
 def heatmap(
@@ -215,7 +224,7 @@ def heatmatrix(
         if dd:
             df = df[df.columns.values[column]]
         else:
-            df = df.ix[:, column]
+            df = df.loc[:, column]
 
     min_val, max_val, total_rows = min_max_count(df)
 
@@ -410,7 +419,7 @@ def stem_data(
         # if dd:
         #    x = x[x.columns.values[column]]
         # else:
-        x = x.ix[:, column]
+        x = x.loc[:, column]
 
     # Sampling or not we need the absolute min/max
     if omin is None or omax is None or total_rows is None:
@@ -508,7 +517,7 @@ def stem_data(
             int_part += 1.0
         data.append((round_frac, int_part))
     sorted_data = sorted(data, key=itemgetter(1, 0))
-    stems = list(set([s for l, s in sorted_data]))
+    stems = list(set([stem for leaf, stem in sorted_data]))
     current_stem = None
     current_leaf = None
     previous_mod = 0
@@ -519,8 +528,8 @@ def stem_data(
     if outliers:
         row = "{}\n    ¡".format(omin)
 
-    neg_zero_leaf = len([l for l, s in sorted_data if -1 < l < 0])
-    pos_zero_leaf = len([l for l, s in sorted_data if 0 < l < 1])
+    neg_zero_leaf = len([leaf for leaf, stem in sorted_data if -1 < leaf < 0])
+    pos_zero_leaf = len([leaf for leaf, stem in sorted_data if 0 < leaf < 1])
     neg_zero = None
     for leaf, stem in sorted_data:
         # leaf = round(f_leaf, 1 + leaf_order)
@@ -540,7 +549,7 @@ def stem_data(
             elif leaf_order > 1:
                 row += " "
             previous_mod = ileaf % break_on
-            row += str(round(abs(leaf), 1 + leaf_order))[2 : leaf_order + 2]
+            row += str(round(abs(leaf), 1 + leaf_order))[2: leaf_order + 2]
         else:
             if row != "":
                 rows.append(row)
@@ -570,7 +579,7 @@ def stem_data(
                     rows.append(neg_zero)
 
             current_leaf = str(round(abs(leaf), 1 + leaf_order))[
-                2 : leaf_order + 2
+                2: leaf_order + 2
             ].zfill(leaf_order)
             if current_stem and int(current_leaf) >= break_on:
                 row = "{:>3} | ".format(int(stem))
