@@ -14,7 +14,7 @@ setup(name='stemgraphic',
           "docopt",
           "matplotlib",
           "pandas",
-          #"python-levenshtein",
+          # "python-levenshtein",
           "seaborn"
       ],
       include_package_data=True,

@@ -136,15 +136,15 @@ def small_multiples(
     plt.suptitle("Distribution of {}".format(var), ha="center", fontsize=16)
 
     if nb_rows + offset > 1 and nb_cols > 1:
-        multidim = "xy"
+        # multidim = "xy"
         ax0 = axes[0][0]
-        ax1 = axes[0][1]
+        ax = axes[0][1]
     elif nb_rows + offset > 1:
-        multidim = "y"
+        # multidim = "y"
         ax0 = axes[0]
-        ax1 = None
+        ax = None
     else:
-        multidim = "x"
+        # multidim = "x"
         ax0 = axes[0]
 
     if legend == "top":
