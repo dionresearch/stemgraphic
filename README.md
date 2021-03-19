@@ -115,6 +115,12 @@ The supported text chart types (-t):
 
 # Latest changes
 
+## Version 0.9.1
+
+- fixes for `pandas` >= 1.0
+- passing aggregation from small_multiples and default to False
+- handle categorical filtered out on density plots
+
 ## Version 0.9.0
 
 - bugfix when no index in translate_representation
