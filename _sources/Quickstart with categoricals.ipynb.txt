@@ -1,0 +1,254 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# stemgraphic quickstart with categorical\n",
+    "\n",
+    "Import stem_graphic from stemgraphic.alpha"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%matplotlib inline\n",
+    "import pandas as pd\n",
+    "from stemgraphic.alpha import stem_graphic"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Load a data frame"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df = pd.read_csv('../datasets/iris.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>sepal_length</th>\n",
+       "      <th>sepal_width</th>\n",
+       "      <th>petal_length</th>\n",
+       "      <th>petal_width</th>\n",
+       "      <th>species</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>count</th>\n",
+       "      <td>150.000000</td>\n",
+       "      <td>150.000000</td>\n",
+       "      <td>150.000000</td>\n",
+       "      <td>150.000000</td>\n",
+       "      <td>150</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>unique</th>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>3</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>top</th>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>setosa</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>freq</th>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>50</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>mean</th>\n",
+       "      <td>5.843333</td>\n",
+       "      <td>3.054000</td>\n",
+       "      <td>3.758667</td>\n",
+       "      <td>1.198667</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>std</th>\n",
+       "      <td>0.828066</td>\n",
+       "      <td>0.433594</td>\n",
+       "      <td>1.764420</td>\n",
+       "      <td>0.763161</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>min</th>\n",
+       "      <td>4.300000</td>\n",
+       "      <td>2.000000</td>\n",
+       "      <td>1.000000</td>\n",
+       "      <td>0.100000</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25%</th>\n",
+       "      <td>5.100000</td>\n",
+       "      <td>2.800000</td>\n",
+       "      <td>1.600000</td>\n",
+       "      <td>0.300000</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>50%</th>\n",
+       "      <td>5.800000</td>\n",
+       "      <td>3.000000</td>\n",
+       "      <td>4.350000</td>\n",
+       "      <td>1.300000</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>75%</th>\n",
+       "      <td>6.400000</td>\n",
+       "      <td>3.300000</td>\n",
+       "      <td>5.100000</td>\n",
+       "      <td>1.800000</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>max</th>\n",
+       "      <td>7.900000</td>\n",
+       "      <td>4.400000</td>\n",
+       "      <td>6.900000</td>\n",
+       "      <td>2.500000</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "        sepal_length  sepal_width  petal_length  petal_width species\n",
+       "count     150.000000   150.000000    150.000000   150.000000     150\n",
+       "unique           NaN          NaN           NaN          NaN       3\n",
+       "top              NaN          NaN           NaN          NaN  setosa\n",
+       "freq             NaN          NaN           NaN          NaN      50\n",
+       "mean        5.843333     3.054000      3.758667     1.198667     NaN\n",
+       "std         0.828066     0.433594      1.764420     0.763161     NaN\n",
+       "min         4.300000     2.000000      1.000000     0.100000     NaN\n",
+       "25%         5.100000     2.800000      1.600000     0.300000     NaN\n",
+       "50%         5.800000     3.000000      4.350000     1.300000     NaN\n",
+       "75%         6.400000     3.300000      5.100000     1.800000     NaN\n",
+       "max         7.900000     4.400000      6.900000     2.500000     NaN"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df.describe(include='all')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Select a column with text."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 720x90 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "stem_graphic(list(df['species'].values));"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "From this, we see we have 50 setosa, 50 versicolor and 50 virginica, but you probably already knew that!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python [conda env:stem] *",
+   "language": "python",
+   "name": "conda-env-stem-py"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
