@@ -26,7 +26,7 @@ jobs:
       - shell: bash -l {0}
         run: |
           conda install docopt matplotlib pandas plotly seaborn scipy flake8 sphinx -y -q
-          python -m pip install pep257 proselint .
+          python -m pip install pep257 proselint nbsphinx .
 
       - shell: bash -l {0}
         run: conda list
