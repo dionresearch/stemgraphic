@@ -12,6 +12,7 @@ from warnings import warn
 def small_multiples(
     df,
     var,
+    aggregation=False,
     axes=None,
     bins=None,
     box=None,
@@ -48,6 +49,7 @@ def small_multiples(
 
     :param df: list, numpy array, time series, pandas or dask dataframe
     :param var:
+    :param aggregation:
     :param axes:
     :param bins:
     :param box:
@@ -99,8 +101,6 @@ def small_multiples(
     hue_labels = hue_labels if hue_labels else hue_categories
     row_labels = row_labels if row_labels else row_categories
     col_labels = col_labels if col_labels else col_categories
-
-    titles = [legend_title] + row_labels
 
     if legend == "top":
         offset = 1
@@ -207,6 +207,7 @@ def small_multiples(
                             alpha.stem_graphic(
                                 to_plot[var].to_frame("word"),
                                 secondary_to_plot[var].to_frame("word"),
+                                aggregation=aggregation,
                                 ax=ax[j + offset],
                                 ax2=ax2[j + offset],
                             )
@@ -219,15 +220,16 @@ def small_multiples(
                             f, a = num.stem_graphic(
                                 to_plot,
                                 secondary_to_plot,
+                                aggregation=aggregation,
                                 ax=ax[j + offset],
                                 ax2=ax2[j + offset],
                                 column=var,
                                 flip_axes=flip_axes,
                             )
-                            # ax2[j+offset].set_xlim(ax2[j+offset].get_xlim()[::-1])
                         else:
                             f, a = num.stem_graphic(
                                 to_plot,
+                                aggregation=aggregation,
                                 ax=ax[j + offset],
                                 column=var,
                                 flip_axes=flip_axes,
@@ -235,7 +237,6 @@ def small_multiples(
                 elif plot_function:
                     plot_function(to_plot, ax=ax[j + offset])
                 else:
-
                     _, ax[j + offset], max_peak, _, _ = density_plot(
                         to_plot,
                         var=var,
