@@ -24,11 +24,11 @@ jobs:
           conda info
       - shell: bash -l {0}
         run: |
-          conda install docopt matplotlib pandas plotly seaborn scipy flake8 -y -q
+          conda install docopt matplotlib pandas plotly seaborn scipy flake8 sphinx -y -q
           python -m pip install pep257 proselint .
 
       - shell: bash -l {0}
-        run:conda list
+        run: conda list
 
       - name: Lint
         shell: bash -l {0}
