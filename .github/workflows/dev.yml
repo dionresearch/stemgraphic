@@ -39,8 +39,15 @@ jobs:
       - name: Code Documentation check
         shell: bash -l {0}
         run: |
-            pep257 stemgraphic/
+          pep257 stemgraphic/
+
       - name: User Documentation check
         shell: bash -l {0}
         run: |
-            proselint README.md
+          proselint README.md
+
+      - name: User doc build
+        shell: bash -l {0}
+        run: |
+          cd doc/sphinx
+          make html
