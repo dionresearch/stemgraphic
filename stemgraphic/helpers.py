@@ -746,7 +746,7 @@ def translate_alpha_representation(text, charset=None):
         if text[-1] != "|":
             text_string = text[::-1]
         else:
-            text_string = text[text.find("|") - 1 :: -1] + text[-1:]
+            text_string = text[text.find("|") - 1:: -1] + text[-1:]
     else:
         text_string = text
 
@@ -772,7 +772,7 @@ def translate_representation(text, charset=None, index=None, zero_blank=None):
         if text[-1] != "|":
             text_string = text[::-1]
         else:
-            text_string = text[text.find("|") - 1 :: -1] + text[-1:]
+            text_string = text[text.find("|") - 1:: -1] + text[-1:]
     else:
         text_string = text
     if index > 1 and zero_blank:
