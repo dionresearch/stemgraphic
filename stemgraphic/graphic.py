@@ -161,8 +161,10 @@ def density_plot(
                 return None
 
         if density or hist or rug or fit:
+            import warnings
+            warnings.filterwarnings("ignore")
             sns.distplot(
-                to_plot,
+                x=to_plot,
                 ax=ax,
                 bins=bins,
                 fit=fit,
@@ -171,7 +173,11 @@ def density_plot(
                 norm_hist=norm_hist,
                 rug=rug,
             )
-            line = ax.lines[i]
+            try:
+                line = ax.lines[i]
+            except IndexError:
+                # facet has eliminated some conditions, continue iteration
+                continue
             x = line.get_xydata()[:, 0]
             y = line.get_xydata()[:, 1]
             true_min = min(x)
@@ -201,15 +207,15 @@ def density_plot(
         if hue_val == "all":
             if strip:
                 if jitter:
-                    sns.stripplot(all, jitter=jitter, ax=ax2)
+                    sns.stripplot(x=all, jitter=jitter, ax=ax2)
                 else:
-                    sns.stripplot(all, ax=ax2)
+                    sns.stripplot(x=all, ax=ax2)
             elif swarm:
-                sns.swarmplot(all, ax=ax2)
+                sns.swarmplot(x=all, ax=ax2)
             if box:
-                sns.boxplot(all, ax=ax2)
+                sns.boxplot(x=all, ax=ax2)
             elif violin:
-                sns.violinplot(all, ax=ax2)
+                sns.violinplot(x=all, ax=ax2)
         else:
             # outside the visible area, for legend
             ax.scatter(
@@ -218,16 +224,16 @@ def density_plot(
             if strip:
                 if jitter:
                     sns.stripplot(
-                        all, jitter=jitter, ax=ax2, color="C{}".format(len(hues))
+                        x=all, jitter=jitter, ax=ax2, color="C{}".format(len(hues))
                     )
                 else:
-                    sns.stripplot(all, ax=ax2, color="C{}".format(len(hues)))
+                    sns.stripplot(x=all, ax=ax2, color="C{}".format(len(hues)))
             elif swarm:
-                sns.swarmplot(all, ax=ax2, color="C{}".format(len(hues)))
+                sns.swarmplot(x=all, ax=ax2, color="C{}".format(len(hues)))
             if box:
-                sns.boxplot(all, ax=ax2, color="C{}".format(len(hues)))
+                sns.boxplot(x=all, ax=ax2, color="C{}".format(len(hues)))
             elif violin:
-                sns.violinplot(all, ax=ax2, color="C{}".format(len(hues)))
+                sns.violinplot(x=all, ax=ax2, color="C{}".format(len(hues)))
             hue_labels += ["all"]
         ax2.set(ylim=(-0.01 if violin else -0.3, 10 if (box or violin) else 4))
 
@@ -326,7 +332,7 @@ def heatmap(
         if dd:
             df = df[df.columns.values[column]]
         else:
-            df = df.ix[:, column]
+            df = df.loc[:, column]
 
     min_val, max_val, total_rows = min_max_count(df)
 
@@ -491,7 +497,7 @@ def leaf_scatter(
                 if df.dtypes[i] in ("int64", "float64"):
                     column = i
                     break
-        df = df.ix[:, column].dropna()
+        df = df.loc[:, column].dropna()
 
     if font_kw is None:
         font_kw = {}
@@ -685,7 +691,7 @@ def stem_graphic(
         # if dd:
         #    df = df[df.columns.values[column]]
         # else:
-        df = df.ix[:, column].dropna()
+        df = df.loc[:, column].dropna()
 
     if font_kw is None:
         font_kw = {}
