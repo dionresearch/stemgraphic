@@ -1,4 +1,4 @@
-name: Mariner dev steps w/Miniconda
+name: Stemgraphic dev steps w/Miniconda
 on:
   push:
   pull_request:
